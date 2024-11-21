@@ -4,17 +4,19 @@ import {
   Button,
   View,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
-  ViewStyle,
-  TextStyle,
   Alert,
 } from 'react-native';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 
 // Helper function for fetching audio and alignment
-const fetchAudioAndAlignment = async (text: string, storyId: string, page_no: number, language: string) => {
+const fetchAudioAndAlignment = async (
+  text: string,
+  storyId: string,
+  page_no: number,
+  language: string
+) => {
   const url = 'https://kahanijsondata.azurewebsites.net';
   const New_URL = `${url}/fetchAudioAndAlignment`;
 
@@ -70,29 +72,44 @@ interface NarrationTextProps {
   storyId: string;
 }
 
-const NarrationText: React.FC<NarrationTextProps> = ({ text, backgroundMusicUrl, storyId, currentPage }) => {
+const NarrationText: React.FC<NarrationTextProps> = ({
+  text,
+  backgroundMusicUrl,
+  storyId,
+  currentPage,
+}) => {
   const [audio, setAudio] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-
-  
   const handlePlayAudio = async () => {
     try {
-      const { audioUri } = await fetchAudioAndAlignment(text, storyId, currentPage, 'en'); // Replace '12345' with actual storyId
+      if (audio) {
+        // Audio is already loaded, resume playback
+        await audio.playAsync();
+      } else {
+        // Load the audio for the first time
+        const { audioUri } = await fetchAudioAndAlignment(
+          text,
+          storyId,
+          currentPage,
+          'en'
+        );
 
-      // Load and play the audio
-      const { sound } = await Audio.Sound.createAsync({ uri: audioUri }, { shouldPlay: true });
-      setAudio(sound);
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: audioUri },
+          { shouldPlay: true }
+        );
+        setAudio(sound);
+
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.didJustFinish) {
+            sound.unloadAsync(); // Release resources
+            setAudio(null);
+            setIsPlaying(false);
+          }
+        });
+      }
       setIsPlaying(true);
-
-      // Handle audio playback finish
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if ('didJustFinish' in status && status.didJustFinish) {
-          sound.unloadAsync(); // Release resources
-          setAudio(null);
-          setIsPlaying(false);
-        }
-      });
     } catch (error) {
       Alert.alert('Error', 'Failed to play the audio');
     }
@@ -107,9 +124,9 @@ const NarrationText: React.FC<NarrationTextProps> = ({ text, backgroundMusicUrl,
 
   const renderText = (): JSX.Element[] =>
     text.split(' ').map((word, index) => (
-      <TouchableOpacity key={index}>
-        <Text style={styles.clickableWord}>{word} </Text>
-      </TouchableOpacity>
+      <Text key={index} style={styles.clickableWord}>
+        {word}{' '}
+      </Text>
     ));
 
   return (
@@ -126,13 +143,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({ text, backgroundMusicUrl,
   );
 };
 
-interface Styles {
-  narrationContainer: ViewStyle;
-  narrationText: TextStyle;
-  clickableWord: TextStyle;
-}
-
-const styles = StyleSheet.create<Styles>({
+const styles = StyleSheet.create({
   narrationContainer: {
     flex: 1,
     padding: 50,
