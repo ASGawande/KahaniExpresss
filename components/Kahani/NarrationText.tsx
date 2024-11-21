@@ -17,7 +17,7 @@ import * as FileSystem from 'expo-file-system';
 const fetchAudioAndAlignment = async (text: string, storyId: string, page_no: number, language: string) => {
   const url = 'https://kahanijsondata.azurewebsites.net';
   const New_URL = `${url}/fetchAudioAndAlignment`;
-alert(page_no);
+
   try {
     // Fetch audio and alignment data from the server
     const response = await fetch(New_URL, {
@@ -67,9 +67,10 @@ interface NarrationTextProps {
   totalPages: number;
   text: string;
   backgroundMusicUrl: string;
+  storyId: string;
 }
 
-const NarrationText: React.FC<NarrationTextProps> = ({ text, backgroundMusicUrl }) => {
+const NarrationText: React.FC<NarrationTextProps> = ({ text, backgroundMusicUrl, storyId, currentPage }) => {
   const [audio, setAudio] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -77,7 +78,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({ text, backgroundMusicUrl 
   
   const handlePlayAudio = async () => {
     try {
-      const { audioUri } = await fetchAudioAndAlignment(text, '12345', 3, 'en'); // Replace '12345' with actual storyId
+      const { audioUri } = await fetchAudioAndAlignment(text, storyId, currentPage, 'en'); // Replace '12345' with actual storyId
 
       // Load and play the audio
       const { sound } = await Audio.Sound.createAsync({ uri: audioUri }, { shouldPlay: true });

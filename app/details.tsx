@@ -5,6 +5,7 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { config } from '../constants/constant';
 import StoryPage from '../components/Kahani/StoryPage'
 import Navigation from '../components/Kahani/Navigation';
+import NarrationText from '../components/Kahani/NarrationText';
 
 // Define types for route params
 type RouteParams = {
@@ -104,8 +105,16 @@ const StoryViewer: React.FC = () => {
             prevPage={prevPage}
             pRef={pRef}
           />
+
         )}
+        
       </StoryPage>
+      <NarrationText
+            text={page.parent_narration_text}
+            backgroundMusicUrl={backgroundMusicUrl}
+            storyId={storyId}
+            currentPage={currentPage}
+          />
     </View>
   );
 };

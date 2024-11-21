@@ -29,15 +29,14 @@ const StoryPage: React.FC<StoryPageProps> = ({ page, currentPage, children, back
           />
         )}
       </View>
-      <View style={styles.contentContainer}>
+      {/* <View style={styles.contentContainer}>
         <ScrollView style={styles.scrollablePanel} ref={pRef}>
           <NarrationText
             text={page.parent_narration_text}
             backgroundMusicUrl={backgroundMusicUrl}
           />
         </ScrollView>
-        {/* <AudioPlayer page={page} /> */}
-      </View>
+      </View> */}
       {children(pRef)}
     </View>
   );
