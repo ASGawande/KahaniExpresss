@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Button, Alert, ViewStyle, StyleSheet } from 'react-native';
-import AudioPlayer from '../Kahani/AudioPlayer'
+
 
 // Define the shape of the 'page' prop
 interface Page {
@@ -45,7 +45,7 @@ const Navigation: React.FC<NavigationProps> = ({
       {!page.parent_narration_audio && (
         <Button title="Speak" onPress={speak} />
       )}
-      <AudioPlayer url="https://myappcdn.com/ringtones/mp3/mom-mom-mom-mom_1620816320.mp3" />
+      
       <Button
         title="Next"
         onPress={nextPage}
