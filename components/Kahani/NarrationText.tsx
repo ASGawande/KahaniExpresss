@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Text,
   Button,
@@ -57,12 +57,50 @@ const fetchAudioAndAlignment = async (
 
     console.log('Audio file saved at:', fileUri);
 
-    return { alignment: data.alignment, audioUri: fileUri };
+    // Parse and transform alignment data to word-level timing
+    let parsedAlignment = typeof data.alignment === 'string' ? JSON.parse(data.alignment) : data.alignment;
+
+    const words = text.split(/\s+/);
+const { character_start_times_seconds, character_end_times_seconds, characters } = parsedAlignment;
+const wordTimings = [];
+let characterIndex = 0;
+
+words.forEach((word) => {
+  const wordLength = word.length;
+  if (characterIndex + wordLength - 1 < character_start_times_seconds.length) {
+    const startTime = character_start_times_seconds[characterIndex] * 1000; // Convert to milliseconds
+    const endTime = character_end_times_seconds[characterIndex + wordLength - 1] * 1000; // Convert to milliseconds
+
+
+    wordTimings.push({
+      word,
+      startTime,
+      endTime,
+    });
+  }
+  characterIndex += wordLength;
+
+  // Skip spaces in the character alignment
+  while (characters[characterIndex] === ' ') {
+    characterIndex += 1;
+  }
+});
+
+parsedAlignment = wordTimings;
+console.log('Parsed Alignment', JSON.stringify(parsedAlignment));
+
+    return { alignment: parsedAlignment, audioUri: fileUri };
   } catch (error) {
     console.error('Error fetching audio and alignment:', error);
     throw error;
   }
 };
+
+interface AlignmentData {
+  word: string;
+  startTime: number;
+  endTime: number;
+}
 
 interface NarrationTextProps {
   currentPage: number;
@@ -80,6 +118,9 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 }) => {
   const [audio, setAudio] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [alignment, setAlignment] = useState<AlignmentData[]>([]);
+  const [highlightedWordIndex, setHighlightedWordIndex] = useState<number | null>(null);
+  const audioRef = useRef<Audio.Sound | null>(null);
 
   const handlePlayAudio = async () => {
     try {
@@ -88,30 +129,32 @@ const NarrationText: React.FC<NarrationTextProps> = ({
         await audio.playAsync();
       } else {
         // Load the audio for the first time
-        const { audioUri } = await fetchAudioAndAlignment(
-          text,
-          storyId,
-          currentPage,
-          'en'
-        );
+        const { audioUri, alignment } = await fetchAudioAndAlignment(text, storyId, currentPage, 'en');
+        
+        setAlignment(alignment);
 
         const { sound } = await Audio.Sound.createAsync(
           { uri: audioUri },
           { shouldPlay: true }
         );
         setAudio(sound);
+        audioRef.current = sound;
 
         sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isPlaying && status.positionMillis !== undefined) {
+            updateHighlightedWord(status.positionMillis);
+          }
           if (status.didJustFinish) {
             sound.unloadAsync(); // Release resources
             setAudio(null);
             setIsPlaying(false);
+            setHighlightedWordIndex(null);
           }
         });
       }
       setIsPlaying(true);
     } catch (error) {
-      Alert.alert('Error', 'Failed to play the audio');
+      Alert.alert('Error', `Failed to play the audio: ${error.message}`);
     }
   };
 
@@ -122,12 +165,54 @@ const NarrationText: React.FC<NarrationTextProps> = ({
     }
   };
 
+  const updateHighlightedWord = (positionMillis: number) => {
+    if (!alignment.length) return;
+
+  let left = 0;
+  let right = alignment.length - 1;
+  let found = false;
+
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    const { startTime, endTime } = alignment[mid];
+
+    if (positionMillis >= startTime && positionMillis < endTime) {
+      setHighlightedWordIndex(mid);
+      found = true;
+      break;
+    } else if (positionMillis < startTime) {
+      right = mid - 1;
+    } else {
+      left = mid + 1;
+    }
+  }
+
+  if (!found) {
+    setHighlightedWordIndex(null);
+  }
+  };
+
   const renderText = (): JSX.Element[] =>
     text.split(' ').map((word, index) => (
-      <Text key={index} style={styles.clickableWord}>
+      <Text
+        key={index}
+        style={
+          index === highlightedWordIndex
+            ? [styles.clickableWord, styles.highlightedWord]
+            : styles.clickableWord
+        }
+      >
         {word}{' '}
       </Text>
     ));
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.unloadAsync().catch((error) => console.error('Error unloading audio:', error));
+      }
+    };
+  }, []);
 
   return (
     <View style={styles.narrationContainer}>
@@ -160,6 +245,9 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 19,
     fontWeight: '500',
+  },
+  highlightedWord: {
+    backgroundColor: 'yellow',
   },
 });
 
