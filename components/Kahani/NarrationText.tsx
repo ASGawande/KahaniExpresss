@@ -58,36 +58,69 @@ const fetchAudioAndAlignment = async (
     console.log('Audio file saved at:', fileUri);
 
     // Parse and transform alignment data to word-level timing
-    let parsedAlignment = typeof data.alignment === 'string' ? JSON.parse(data.alignment) : data.alignment;
+    let parsedAlignment =
+      typeof data.alignment === 'string'
+        ? JSON.parse(data.alignment)
+        : data.alignment;
 
-    const words = text.split(/\s+/);
-const { character_start_times_seconds, character_end_times_seconds, characters } = parsedAlignment;
-const wordTimings = [];
-let characterIndex = 0;
+    // Debug: Log raw alignment data
+    console.log('Raw Alignment Data:', parsedAlignment);
 
-words.forEach((word) => {
-  const wordLength = word.length;
-  if (characterIndex + wordLength - 1 < character_start_times_seconds.length) {
-    const startTime = character_start_times_seconds[characterIndex] * 1000; // Convert to milliseconds
-    const endTime = character_end_times_seconds[characterIndex + wordLength - 1] * 1000; // Convert to milliseconds
+    // Clean up the text by replacing non-breaking spaces and trimming whitespace
+    const cleanedText = text.replace(/\u00A0/g, ' ').trim();
 
+    // Split the text into words, handling multiple spaces and line breaks
+    const words = cleanedText.match(/\S+/g) || [];
 
-    wordTimings.push({
-      word,
-      startTime,
-      endTime,
+    // Extract alignment character data
+    const {
+      character_start_times_seconds,
+      character_end_times_seconds,
+      characters,
+    } = parsedAlignment;
+
+    const wordTimings = [];
+    let characterIndex = 0;
+
+    words.forEach((word) => {
+      // Skip any non-character elements in 'characters' (e.g., spaces, punctuation)
+      while (
+        characters[characterIndex] &&
+        !/\S/.test(characters[characterIndex])
+      ) {
+        characterIndex += 1;
+      }
+
+      const wordLength = word.length;
+      const startIndex = characterIndex;
+      const endIndex = characterIndex + wordLength - 1;
+
+      // Ensure indices are within bounds
+      if (
+        startIndex < character_start_times_seconds.length &&
+        endIndex < character_end_times_seconds.length
+      ) {
+        const startTime =
+          character_start_times_seconds[startIndex] * 1000; // Convert to milliseconds
+        const endTime =
+          character_end_times_seconds[endIndex] * 1000; // Convert to milliseconds
+
+        wordTimings.push({
+          word,
+          startTime,
+          endTime,
+        });
+      } else {
+        console.warn(`Indices out of bounds for word "${word}"`);
+      }
+
+      characterIndex += wordLength;
     });
-  }
-  characterIndex += wordLength;
 
-  // Skip spaces in the character alignment
-  while (characters[characterIndex] === ' ') {
-    characterIndex += 1;
-  }
-});
+    parsedAlignment = wordTimings;
 
-parsedAlignment = wordTimings;
-console.log('Parsed Alignment', JSON.stringify(parsedAlignment));
+    // Debug: Log parsed alignment data
+    console.log('Parsed Alignment:', parsedAlignment);
 
     return { alignment: parsedAlignment, audioUri: fileUri };
   } catch (error) {
@@ -104,7 +137,7 @@ interface AlignmentData {
 
 interface NarrationTextProps {
   currentPage: number;
-  totalPages: number;
+  
   text: string;
   backgroundMusicUrl: string;
   storyId: string;
@@ -129,8 +162,14 @@ const NarrationText: React.FC<NarrationTextProps> = ({
         await audio.playAsync();
       } else {
         // Load the audio for the first time
-        const { audioUri, alignment } = await fetchAudioAndAlignment(text, storyId, currentPage, 'en');
-        
+        const { audioUri, alignment } = await fetchAudioAndAlignment(
+          text,
+          storyId,
+          currentPage,
+          'en'
+        );
+
+        // Ensure alignment state is updated before starting playback
         setAlignment(alignment);
 
         const { sound } = await Audio.Sound.createAsync(
@@ -145,7 +184,8 @@ const NarrationText: React.FC<NarrationTextProps> = ({
             updateHighlightedWord(status.positionMillis);
           }
           if (status.didJustFinish) {
-            sound.unloadAsync(); // Release resources
+            sound.unloadAsync();
+            audioRef.current = null;
             setAudio(null);
             setIsPlaying(false);
             setHighlightedWordIndex(null);
@@ -167,29 +207,40 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 
   const updateHighlightedWord = (positionMillis: number) => {
     if (!alignment.length) return;
+// alert(JSON.stringify(alignment));
+    let left = 0;
+    let right = alignment.length - 1;
+    let highlightedIndex = null;
 
-  let left = 0;
-  let right = alignment.length - 1;
-  let found = false;
+    // Adjusted time comparisons for minor discrepancies
+    const tolerance = 50; // milliseconds
 
-  while (left <= right) {
-    const mid = Math.floor((left + right) / 2);
-    const { startTime, endTime } = alignment[mid];
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      const { startTime, endTime } = alignment[mid];
 
-    if (positionMillis >= startTime && positionMillis < endTime) {
-      setHighlightedWordIndex(mid);
-      found = true;
-      break;
-    } else if (positionMillis < startTime) {
-      right = mid - 1;
-    } else {
-      left = mid + 1;
+      // Debug: Log current search indices and times
+      console.log(`Checking word at index ${mid}:`, alignment[mid]);
+
+      if (
+        positionMillis + tolerance >= startTime &&
+        positionMillis - tolerance <= endTime
+      ) {
+        highlightedIndex = mid;
+        console.log('Found matching word:', alignment[mid].word);
+        break;
+      } else if (positionMillis < startTime) {
+        right = mid - 1;
+      } else {
+        left = mid + 1;
+      }
     }
-  }
 
-  if (!found) {
-    setHighlightedWordIndex(null);
-  }
+    if (highlightedIndex !== null) {
+      setHighlightedWordIndex(highlightedIndex);
+    } else {
+      setHighlightedWordIndex(null);
+    }
   };
 
   const renderText = (): JSX.Element[] =>
@@ -209,7 +260,10 @@ const NarrationText: React.FC<NarrationTextProps> = ({
   useEffect(() => {
     return () => {
       if (audioRef.current) {
-        audioRef.current.unloadAsync().catch((error) => console.error('Error unloading audio:', error));
+        audioRef.current
+          .unloadAsync()
+          .catch((error) => console.error('Error unloading audio:', error));
+        audioRef.current = null;
       }
     };
   }, []);
