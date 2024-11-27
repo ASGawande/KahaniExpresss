@@ -378,6 +378,10 @@ const styles = StyleSheet.create({
   },
   highlightedWord: {
     backgroundColor: 'yellow',
+    borderRadius: 15, // Adjust the value as needed for roundness
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    overflow: 'hidden',
   },
   controls: {
     marginTop: 20,
