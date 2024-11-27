@@ -137,7 +137,6 @@ interface AlignmentData {
 
 interface NarrationTextProps {
   currentPage: number;
-  
   text: string;
   backgroundMusicUrl: string;
   storyId: string;
@@ -153,7 +152,50 @@ const NarrationText: React.FC<NarrationTextProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [alignment, setAlignment] = useState<AlignmentData[]>([]);
   const [highlightedWordIndex, setHighlightedWordIndex] = useState<number | null>(null);
+  const [audioUri, setAudioUri] = useState<string | null>(null);
   const audioRef = useRef<Audio.Sound | null>(null);
+
+  // Fetch alignment and audio when text changes
+  useEffect(() => {
+    let isMounted = true;
+
+    // Unload any existing audio
+    if (audioRef.current) {
+      audioRef.current
+        .unloadAsync()
+        .catch((error) => console.error('Error unloading audio:', error));
+      audioRef.current = null;
+    }
+    setAudio(null);
+    setIsPlaying(false);
+    setHighlightedWordIndex(null);
+
+    const updateAlignmentAndAudio = async () => {
+      try {
+        // Fetch alignment data and audio URI
+        const { alignment, audioUri } = await fetchAudioAndAlignment(
+          text,
+          storyId,
+          currentPage,
+          'en'
+        );
+
+        if (isMounted) {
+          setAlignment(alignment);
+          setAudioUri(audioUri);
+          setHighlightedWordIndex(null);
+        }
+      } catch (error) {
+        Alert.alert('Error', `Failed to fetch alignment data: ${error.message}`);
+      }
+    };
+
+    updateAlignmentAndAudio();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [text]);
 
   const handlePlayAudio = async () => {
     try {
@@ -161,16 +203,12 @@ const NarrationText: React.FC<NarrationTextProps> = ({
         // Audio is already loaded, resume playback
         await audio.playAsync();
       } else {
-        // Load the audio for the first time
-        const { audioUri, alignment } = await fetchAudioAndAlignment(
-          text,
-          storyId,
-          currentPage,
-          'en'
-        );
-
-        // Ensure alignment state is updated before starting playback
-        setAlignment(alignment);
+        // Load the audio
+        if (!audioUri) {
+          
+          Alert.alert('Error', 'Audio file is not available');
+          return;
+        }
 
         const { sound } = await Audio.Sound.createAsync(
           { uri: audioUri },
@@ -207,7 +245,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 
   const updateHighlightedWord = (positionMillis: number) => {
     if (!alignment.length) return;
-// alert(JSON.stringify(alignment));
+
     let left = 0;
     let right = alignment.length - 1;
     let highlightedIndex = null;
@@ -219,15 +257,11 @@ const NarrationText: React.FC<NarrationTextProps> = ({
       const mid = Math.floor((left + right) / 2);
       const { startTime, endTime } = alignment[mid];
 
-      // Debug: Log current search indices and times
-      console.log(`Checking word at index ${mid}:`, alignment[mid]);
-
       if (
         positionMillis + tolerance >= startTime &&
         positionMillis - tolerance <= endTime
       ) {
         highlightedIndex = mid;
-        console.log('Found matching word:', alignment[mid].word);
         break;
       } else if (positionMillis < startTime) {
         right = mid - 1;
@@ -257,6 +291,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
       </Text>
     ));
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (audioRef.current) {
