@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
@@ -145,6 +146,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
   const [alignment, setAlignment] = useState<AlignmentData[]>([]);
   const [highlightedWordIndex, setHighlightedWordIndex] = useState<number | null>(null);
   const [audioUri, setAudioUri] = useState<string | null>(null);
+  const [playbackRate, setPlaybackRate] = useState<number>(1.0);
   const audioRef = useRef<Audio.Sound | null>(null);
 
   // Fetch alignment and audio when text changes
@@ -203,7 +205,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 
         const { sound } = await Audio.Sound.createAsync(
           { uri: audioUri },
-          { shouldPlay: true }
+          { shouldPlay: true, rate: playbackRate, shouldCorrectPitch: true }
         );
         setAudio(sound);
         audioRef.current = sound;
@@ -231,6 +233,17 @@ const NarrationText: React.FC<NarrationTextProps> = ({
     if (audio) {
       await audio.pauseAsync();
       setIsPlaying(false);
+    }
+  };
+
+  const handleSetPlaybackRate = async (rate: number) => {
+    setPlaybackRate(rate);
+    if (audio) {
+      try {
+        await audio.setRateAsync(rate, true);
+      } catch (error) {
+        console.error('Error setting playback rate:', error);
+      }
     }
   };
 
@@ -308,10 +321,41 @@ const NarrationText: React.FC<NarrationTextProps> = ({
         <View style={styles.narrationText}>{renderText()}</View>
       </ScrollView>
 
-      <Button
-        title={isPlaying ? 'Pause Audio' : 'Play Audio'}
-        onPress={isPlaying ? handlePauseAudio : handlePlayAudio}
-      />
+      <View style={styles.controls}>
+        <TouchableOpacity
+          style={styles.playbackButton}
+          onPress={isPlaying ? handlePauseAudio : handlePlayAudio}
+        >
+          <Text style={styles.playbackButtonText}>
+            {isPlaying ? 'Pause Audio' : 'Play Audio'}
+          </Text>
+        </TouchableOpacity>
+
+        <View style={styles.playbackRateContainer}>
+          <Text style={styles.playbackRateLabel}>Playback Speed:</Text>
+          <View style={styles.playbackRateButtons}>
+            {[0.5, 1.0, 1.5, 2.0].map((rate) => (
+              <TouchableOpacity
+                key={rate}
+                style={[
+                  styles.rateButton,
+                  playbackRate === rate && styles.activeRateButton,
+                ]}
+                onPress={() => handleSetPlaybackRate(rate)}
+              >
+                <Text
+                  style={[
+                    styles.rateButtonText,
+                    playbackRate === rate && styles.activeRateButtonText,
+                  ]}
+                >
+                  {rate}x
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </View>
     </View>
   );
 };
@@ -334,6 +378,45 @@ const styles = StyleSheet.create({
   },
   highlightedWord: {
     backgroundColor: 'yellow',
+  },
+  controls: {
+    marginTop: 20,
+  },
+  playbackButton: {
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  playbackButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  playbackRateContainer: {
+    marginTop: 20,
+  },
+  playbackRateLabel: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  playbackRateButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  rateButton: {
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: '#f0f0f0',
+  },
+  activeRateButton: {
+    backgroundColor: '#007AFF',
+  },
+  rateButtonText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  activeRateButtonText: {
+    color: '#fff',
   },
 });
 
