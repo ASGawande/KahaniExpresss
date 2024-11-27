@@ -327,7 +327,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
           onPress={isPlaying ? handlePauseAudio : handlePlayAudio}
         >
           <Text style={styles.playbackButtonText}>
-            {isPlaying ? 'Pause Audio' : 'Play Audio'}
+            {isPlaying ? 'Pause Audio' : 'Start Reading'}
           </Text>
         </TouchableOpacity>
 
