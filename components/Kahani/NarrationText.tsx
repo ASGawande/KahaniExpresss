@@ -55,22 +55,17 @@ const fetchAudioAndAlignment = async (
       throw new Error('Failed to save audio file');
     }
 
-    // console.log('Audio file saved at:', fileUri);
-
     // Parse and transform alignment data to word-level timing
     let parsedAlignment =
       typeof data.alignment === 'string'
         ? JSON.parse(data.alignment)
         : data.alignment;
 
-    // Debug: Log raw alignment data
-    // console.log('Raw Alignment Data:', parsedAlignment);
-
     // Clean up the text by replacing non-breaking spaces and trimming whitespace
     const cleanedText = text.replace(/\u00A0/g, ' ').trim();
 
-    // Split the text into words, handling multiple spaces and line breaks
-    const words = cleanedText.match(/\S+/g) || [];
+    // Split the text into tokens (words and spaces)
+    const tokens = cleanedText.match(/(\S+|\s+)/g) || [];
 
     // Extract alignment character data
     const {
@@ -82,45 +77,41 @@ const fetchAudioAndAlignment = async (
     const wordTimings = [];
     let characterIndex = 0;
 
-    words.forEach((word) => {
-      // Skip any non-character elements in 'characters' (e.g., spaces, punctuation)
-      while (
-        characters[characterIndex] &&
-        !/\S/.test(characters[characterIndex])
-      ) {
-        characterIndex += 1;
-      }
+    tokens.forEach((token, index) => {
+      const isWord = /\S+/.test(token);
+      if (isWord) {
+        const wordLength = token.length;
+        const startIndex = characterIndex;
+        const endIndex = characterIndex + wordLength - 1;
 
-      const wordLength = word.length;
-      const startIndex = characterIndex;
-      const endIndex = characterIndex + wordLength - 1;
+        // Ensure indices are within bounds
+        if (
+          startIndex < character_start_times_seconds.length &&
+          endIndex < character_end_times_seconds.length
+        ) {
+          const startTime =
+            character_start_times_seconds[startIndex] * 1000; // Convert to milliseconds
+          const endTime =
+            character_end_times_seconds[endIndex] * 1000; // Convert to milliseconds
 
-      // Ensure indices are within bounds
-      if (
-        startIndex < character_start_times_seconds.length &&
-        endIndex < character_end_times_seconds.length
-      ) {
-        const startTime =
-          character_start_times_seconds[startIndex] * 1000; // Convert to milliseconds
-        const endTime =
-          character_end_times_seconds[endIndex] * 1000; // Convert to milliseconds
+          wordTimings.push({
+            word: token,
+            startTime,
+            endTime,
+            tokenIndex: index, // Use index from tokens array
+          });
+        } else {
+          console.warn(`Indices out of bounds for word "${token}"`);
+        }
 
-        wordTimings.push({
-          word,
-          startTime,
-          endTime,
-        });
+        characterIndex += wordLength;
       } else {
-        console.warn(`Indices out of bounds for word "${word}"`);
+        // For non-word tokens (spaces, punctuation), increment characterIndex
+        characterIndex += token.length;
       }
-
-      characterIndex += wordLength;
     });
 
     parsedAlignment = wordTimings;
-
-    // Debug: Log parsed alignment data
-    
 
     return { alignment: parsedAlignment, audioUri: fileUri };
   } catch (error) {
@@ -133,6 +124,7 @@ interface AlignmentData {
   word: string;
   startTime: number;
   endTime: number;
+  tokenIndex: number;
 }
 
 interface NarrationTextProps {
@@ -205,7 +197,6 @@ const NarrationText: React.FC<NarrationTextProps> = ({
       } else {
         // Load the audio
         if (!audioUri) {
-
           Alert.alert('Error', 'Audio file is not available');
           return;
         }
@@ -248,7 +239,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 
     let left = 0;
     let right = alignment.length - 1;
-    let highlightedIndex = null;
+    let highlightedWord = null;
 
     // Adjusted time comparisons for minor discrepancies
     const tolerance = 50; // milliseconds
@@ -261,7 +252,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
         positionMillis + tolerance >= startTime &&
         positionMillis - tolerance <= endTime
       ) {
-        highlightedIndex = mid;
+        highlightedWord = alignment[mid];
         break;
       } else if (positionMillis < startTime) {
         right = mid - 1;
@@ -270,26 +261,34 @@ const NarrationText: React.FC<NarrationTextProps> = ({
       }
     }
 
-    if (highlightedIndex !== null) {
-      setHighlightedWordIndex(highlightedIndex);
+    if (highlightedWord !== null) {
+      setHighlightedWordIndex(highlightedWord.tokenIndex);
     } else {
       setHighlightedWordIndex(null);
     }
   };
 
-  const renderText = (): JSX.Element[] =>
-    text.split(' ').map((word, index) => (
-      <Text
-        key={index}
-        style={
-          index === highlightedWordIndex
-            ? [styles.clickableWord, styles.highlightedWord]
-            : styles.clickableWord
-        }
-      >
-        {word}{' '}
-      </Text>
-    ));
+  const renderText = (): JSX.Element[] => {
+    const tokens = text.match(/(\S+|\s+)/g) || [];
+
+    return tokens.map((token, index) => {
+      const isWord = /\S+/.test(token);
+      const isHighlighted = isWord && index === highlightedWordIndex;
+
+      return (
+        <Text
+          key={index}
+          style={
+            isHighlighted
+              ? [styles.word, styles.highlightedWord]
+              : styles.word
+          }
+        >
+          {token}
+        </Text>
+      );
+    });
+  };
 
   // Cleanup on unmount
   useEffect(() => {
@@ -320,18 +319,16 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 const styles = StyleSheet.create({
   narrationContainer: {
     flex: 1,
-    padding: 50,
+    padding: 20,
     width: '100%',
     height: '100%',
   },
   narrationText: {
-    fontSize: 16,
-    color: '#333',
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-  clickableWord: {
-    color: '#007AFF',
+  word: {
+    color: '#000',
     fontSize: 19,
     fontWeight: '500',
   },
