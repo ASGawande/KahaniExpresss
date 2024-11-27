@@ -55,7 +55,7 @@ const fetchAudioAndAlignment = async (
       throw new Error('Failed to save audio file');
     }
 
-    console.log('Audio file saved at:', fileUri);
+    // console.log('Audio file saved at:', fileUri);
 
     // Parse and transform alignment data to word-level timing
     let parsedAlignment =
@@ -64,7 +64,7 @@ const fetchAudioAndAlignment = async (
         : data.alignment;
 
     // Debug: Log raw alignment data
-    console.log('Raw Alignment Data:', parsedAlignment);
+    // console.log('Raw Alignment Data:', parsedAlignment);
 
     // Clean up the text by replacing non-breaking spaces and trimming whitespace
     const cleanedText = text.replace(/\u00A0/g, ' ').trim();
@@ -120,7 +120,7 @@ const fetchAudioAndAlignment = async (
     parsedAlignment = wordTimings;
 
     // Debug: Log parsed alignment data
-    console.log('Parsed Alignment:', parsedAlignment);
+    
 
     return { alignment: parsedAlignment, audioUri: fileUri };
   } catch (error) {
@@ -205,7 +205,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
       } else {
         // Load the audio
         if (!audioUri) {
-          
+
           Alert.alert('Error', 'Audio file is not available');
           return;
         }
