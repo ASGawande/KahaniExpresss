@@ -14,6 +14,7 @@ interface ImageItem {
     _id: string;
     title: string;
     poster_page: string;
+    description: string;
 }
 // Define the navigation parameters
 type RootStackParamList = {
@@ -61,8 +62,9 @@ const LazyImageList: React.FC = () => {
         source={{ uri: item.poster_page }}
         resizeMode="cover"/>
             <Text style={styles.storyTitle}>{item.title}</Text>
+            
           </TouchableOpacity>
-        
+          <Text style={styles.description}>{item.description}</Text>
       </View>
     </ScrollView>
   );
@@ -98,6 +100,10 @@ const styles = StyleSheet.create({
     title: {
       fontSize: 20,
       fontWeight: 'bold',
+      marginBottom: 16,
+    },
+    description: {
+      fontSize: 13,
       marginBottom: 16,
     },
     cardContainer: {
