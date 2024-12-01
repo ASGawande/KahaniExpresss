@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
+import { Ionicons } from '@expo/vector-icons'; // Importing icons
 
 // Helper function for fetching audio and alignment
 const fetchAudioAndAlignment = async (
@@ -335,26 +336,36 @@ const NarrationText: React.FC<NarrationTextProps> = ({
           style={styles.playbackButton}
           onPress={isPlaying ? handlePauseAudio : handlePlayAudio}
         >
+          <Ionicons
+            name={isPlaying ? 'pause' : 'play'}
+            size={24}
+            color="#fff"
+            style={styles.buttonIcon}
+          />
           <Text style={styles.playbackButtonText}>
             {isPlaying ? 'Pause Audio' : 'Start Reading'}
           </Text>
         </TouchableOpacity>
 
         <View style={styles.playbackRateContainer}>
-          <Text style={styles.playbackRateLabel}>
-            Playback Speed: {playbackRate.toFixed(2)}x
-          </Text>
           <View style={styles.playbackRateButtons}>
             <TouchableOpacity
               style={styles.rateButton}
               onPress={() => handleSetPlaybackRate('slow')}
             >
+              <Ionicons name="remove" size={20} color="#fff" />
               <Text style={styles.rateButtonText}>Slow</Text>
             </TouchableOpacity>
+
+            <Text style={styles.playbackRateValue}>
+              {playbackRate.toFixed(2)}x
+            </Text>
+
             <TouchableOpacity
               style={styles.rateButton}
               onPress={() => handleSetPlaybackRate('fast')}
             >
+              <Ionicons name="add" size={20} color="#fff" />
               <Text style={styles.rateButtonText}>Fast</Text>
             </TouchableOpacity>
           </View>
@@ -368,61 +379,86 @@ const styles = StyleSheet.create({
   narrationContainer: {
     flex: 1,
     padding: 20,
-    width: '100%',
-    height: '100%',
+    backgroundColor: '#f5f5f5', // Light background color
   },
   narrationText: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
   word: {
-    color: '#000',
-    fontSize: 19,
-    fontWeight: '500',
+    color: '#333',
+    fontSize: 20,
+    fontWeight: '400',
+    lineHeight: 30,
   },
   highlightedWord: {
-    backgroundColor: 'yellow',
-    borderRadius: 15,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
+    backgroundColor: '#ffeb3b', // Yellow highlight
+    borderRadius: 5, // Adjusted for a subtle rounding effect
     overflow: 'hidden',
   },
   controls: {
-    marginTop: 20,
+    marginTop: 30,
+    alignItems: 'center',
   },
   playbackButton: {
-    backgroundColor: '#007AFF',
-    padding: 10,
-    borderRadius: 5,
+    flexDirection: 'row',
+    backgroundColor: '#6200ee', // Primary color
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
     alignItems: 'center',
+    elevation: 3, // For Android shadow
+    shadowColor: '#000', // For iOS shadow
+    shadowOffset: { width: 0, height: 2 }, // For iOS shadow
+    shadowOpacity: 0.3, // For iOS shadow
+    shadowRadius: 3, // For iOS shadow
   },
   playbackButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
+    marginLeft: 10,
+    fontWeight: '600',
+  },
+  buttonIcon: {
+    marginRight: 5,
   },
   playbackRateContainer: {
-    marginTop: 20,
+    marginTop: 25,
     alignItems: 'center',
-  },
-  playbackRateLabel: {
-    fontSize: 16,
-    marginBottom: 10,
   },
   playbackRateButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '60%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rateButton: {
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: '#007AFF',
-    marginHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#03a9f4', // Secondary color
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginHorizontal: 15,
+    elevation: 2, // For Android shadow
+    shadowColor: '#000', // For iOS shadow
+    shadowOffset: { width: 0, height: 1 }, // For iOS shadow
+    shadowOpacity: 0.25, // For iOS shadow
+    shadowRadius: 2, // For iOS shadow
   },
   rateButtonText: {
     fontSize: 16,
     color: '#fff',
+    marginLeft: 5,
+    fontWeight: '500',
   },
+  playbackRateValue: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    marginHorizontal: 10,
+  },
+  
 });
+
 
 export default NarrationText;
