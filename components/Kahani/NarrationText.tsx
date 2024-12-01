@@ -6,6 +6,8 @@ import {
   ScrollView,
   Alert,
   TouchableOpacity,
+  UIManager,
+  findNodeHandle,
 } from 'react-native';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
@@ -153,6 +155,10 @@ const NarrationText: React.FC<NarrationTextProps> = ({
   const [playbackRate, setPlaybackRate] = useState<number>(1.0);
   const audioRef = useRef<Audio.Sound | null>(null);
 
+  // Refs for scrolling
+  const scrollViewRef = useRef<ScrollView>(null);
+  const wordRefs = useRef<{ [key: number]: Text | null }>({});
+
   // Fetch alignment and audio when text changes
   useEffect(() => {
     let isMounted = true;
@@ -182,6 +188,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
           setAlignment(alignment);
           setAudioUri(audioUri);
           setHighlightedWordIndex(null);
+          wordRefs.current = {}; // Reset word refs
         }
       } catch (error) {
         Alert.alert('Error', `Failed to fetch alignment data: ${error.message}`);
@@ -286,8 +293,34 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 
     if (highlightedWord !== null) {
       setHighlightedWordIndex(highlightedWord.tokenIndex);
+      scrollToWord(highlightedWord.tokenIndex);
     } else {
       setHighlightedWordIndex(null);
+    }
+  };
+
+  const scrollToWord = (index: number) => {
+    const wordRef = wordRefs.current[index];
+    if (wordRef && scrollViewRef.current) {
+      const scrollViewNodeHandle = findNodeHandle(scrollViewRef.current);
+      const wordNodeHandle = findNodeHandle(wordRef);
+
+      if (scrollViewNodeHandle && wordNodeHandle) {
+        UIManager.measureLayout(
+          wordNodeHandle,
+          scrollViewNodeHandle,
+          (error) => {
+            console.error('Error measuring word layout:', error);
+          },
+          (x, y, width, height) => {
+            scrollViewRef.current?.scrollTo({
+              x: 0,
+              y: y - 50, // Adjust 50 to control vertical offset
+              animated: true,
+            });
+          }
+        );
+      }
     }
   };
 
@@ -301,6 +334,9 @@ const NarrationText: React.FC<NarrationTextProps> = ({
       return (
         <Text
           key={index}
+          ref={(el) => {
+            wordRefs.current[index] = el;
+          }}
           style={
             isHighlighted
               ? [styles.word, styles.highlightedWord]
@@ -327,48 +363,46 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 
   return (
     <View style={styles.narrationContainer}>
-      <ScrollView>
+      <ScrollView ref={scrollViewRef} style={{ flex: 1 }}>
         <View style={styles.narrationText}>{renderText()}</View>
       </ScrollView>
 
       <View style={styles.controls}>
-        <TouchableOpacity
-          style={styles.playbackButton}
-          onPress={isPlaying ? handlePauseAudio : handlePlayAudio}
-        >
-          <Ionicons
-            name={isPlaying ? 'pause' : 'play'}
-            size={24}
-            color="#fff"
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.playbackButtonText}>
-            {isPlaying ? 'Pause Audio' : 'Start Reading'}
-          </Text>
-        </TouchableOpacity>
-
-        <View style={styles.playbackRateContainer}>
-          <View style={styles.playbackRateButtons}>
-            <TouchableOpacity
-              style={styles.rateButton}
-              onPress={() => handleSetPlaybackRate('slow')}
-            >
-              <Ionicons name="remove" size={20} color="#fff" />
-              <Text style={styles.rateButtonText}>Slow</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.playbackRateValue}>
-              {playbackRate.toFixed(2)}x
+        <View style={styles.controlRow}>
+          <TouchableOpacity
+            style={styles.playbackButton}
+            onPress={isPlaying ? handlePauseAudio : handlePlayAudio}
+          >
+            <Ionicons
+              name={isPlaying ? 'pause' : 'play'}
+              size={24}
+              color="#fff"
+              style={styles.buttonIcon}
+            />
+            <Text style={styles.playbackButtonText}>
+              {isPlaying ? 'Pause Audio' : 'Start Reading'}
             </Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.rateButton}
-              onPress={() => handleSetPlaybackRate('fast')}
-            >
-              <Ionicons name="add" size={20} color="#fff" />
-              <Text style={styles.rateButtonText}>Fast</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.rateButton}
+            onPress={() => handleSetPlaybackRate('slow')}
+          >
+            <Ionicons name="remove" size={20} color="#fff" />
+            <Text style={styles.rateButtonText}>Slow</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.playbackRateValue}>
+            {playbackRate.toFixed(2)}x
+          </Text>
+
+          <TouchableOpacity
+            style={styles.rateButton}
+            onPress={() => handleSetPlaybackRate('fast')}
+          >
+            <Ionicons name="add" size={20} color="#fff" />
+            <Text style={styles.rateButtonText}>Fast</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -393,20 +427,28 @@ const styles = StyleSheet.create({
   },
   highlightedWord: {
     backgroundColor: '#ffeb3b', // Yellow highlight
-    borderRadius: 5, // Adjusted for a subtle rounding effect
+    borderRadius: 5,
     overflow: 'hidden',
   },
   controls: {
-    marginTop: 30,
+    marginTop: 10,
     alignItems: 'center',
+  },
+  controlRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    flexWrap: 'wrap',
   },
   playbackButton: {
     flexDirection: 'row',
     backgroundColor: '#6200ee', // Primary color
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     borderRadius: 25,
     alignItems: 'center',
+    marginHorizontal: 5,
+    marginBottom: 10,
     elevation: 3, // For Android shadow
     shadowColor: '#000', // For iOS shadow
     shadowOffset: { width: 0, height: 2 }, // For iOS shadow
@@ -415,30 +457,22 @@ const styles = StyleSheet.create({
   },
   playbackButtonText: {
     color: '#fff',
-    fontSize: 18,
-    marginLeft: 10,
+    fontSize: 16,
+    marginLeft: 5,
     fontWeight: '600',
   },
   buttonIcon: {
     marginRight: 5,
-  },
-  playbackRateContainer: {
-    marginTop: 25,
-    alignItems: 'center',
-  },
-  playbackRateButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   rateButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#03a9f4', // Secondary color
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     borderRadius: 25,
-    marginHorizontal: 15,
+    marginHorizontal: 5,
+    marginBottom: 10,
     elevation: 2, // For Android shadow
     shadowColor: '#000', // For iOS shadow
     shadowOffset: { width: 0, height: 1 }, // For iOS shadow
@@ -446,19 +480,17 @@ const styles = StyleSheet.create({
     shadowRadius: 2, // For iOS shadow
   },
   rateButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#fff',
     marginLeft: 5,
     fontWeight: '500',
   },
   playbackRateValue: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginHorizontal: 10,
+    marginHorizontal: 5,
   },
-  
 });
-
 
 export default NarrationText;
