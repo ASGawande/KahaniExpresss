@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Text,
-  Button,
   View,
   StyleSheet,
   ScrollView,
@@ -135,6 +134,10 @@ interface NarrationTextProps {
   storyId: string;
 }
 
+const MIN_PLAYBACK_RATE = 0.5;
+const MAX_PLAYBACK_RATE = 2.0;
+const PLAYBACK_RATE_STEP = 0.25;
+
 const NarrationText: React.FC<NarrationTextProps> = ({
   text,
   backgroundMusicUrl,
@@ -236,11 +239,17 @@ const NarrationText: React.FC<NarrationTextProps> = ({
     }
   };
 
-  const handleSetPlaybackRate = async (rate: number) => {
-    setPlaybackRate(rate);
+  const handleSetPlaybackRate = async (rateType: 'slow' | 'fast') => {
+    let newRate = playbackRate;
+    if (rateType === 'slow') {
+      newRate = Math.max(playbackRate - PLAYBACK_RATE_STEP, MIN_PLAYBACK_RATE);
+    } else if (rateType === 'fast') {
+      newRate = Math.min(playbackRate + PLAYBACK_RATE_STEP, MAX_PLAYBACK_RATE);
+    }
+    setPlaybackRate(newRate);
     if (audio) {
       try {
-        await audio.setRateAsync(rate, true);
+        await audio.setRateAsync(newRate, true);
       } catch (error) {
         console.error('Error setting playback rate:', error);
       }
@@ -332,27 +341,22 @@ const NarrationText: React.FC<NarrationTextProps> = ({
         </TouchableOpacity>
 
         <View style={styles.playbackRateContainer}>
-          <Text style={styles.playbackRateLabel}>Playback Speed:</Text>
+          <Text style={styles.playbackRateLabel}>
+            Playback Speed: {playbackRate.toFixed(2)}x
+          </Text>
           <View style={styles.playbackRateButtons}>
-            {[0.5, 1.0, 1.5, 2.0].map((rate) => (
-              <TouchableOpacity
-                key={rate}
-                style={[
-                  styles.rateButton,
-                  playbackRate === rate && styles.activeRateButton,
-                ]}
-                onPress={() => handleSetPlaybackRate(rate)}
-              >
-                <Text
-                  style={[
-                    styles.rateButtonText,
-                    playbackRate === rate && styles.activeRateButtonText,
-                  ]}
-                >
-                  {rate}x
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <TouchableOpacity
+              style={styles.rateButton}
+              onPress={() => handleSetPlaybackRate('slow')}
+            >
+              <Text style={styles.rateButtonText}>Slow</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.rateButton}
+              onPress={() => handleSetPlaybackRate('fast')}
+            >
+              <Text style={styles.rateButtonText}>Fast</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -378,7 +382,7 @@ const styles = StyleSheet.create({
   },
   highlightedWord: {
     backgroundColor: 'yellow',
-    borderRadius: 15, // Adjust the value as needed for roundness
+    borderRadius: 15,
     paddingHorizontal: 5,
     paddingVertical: 2,
     overflow: 'hidden',
@@ -398,6 +402,7 @@ const styles = StyleSheet.create({
   },
   playbackRateContainer: {
     marginTop: 20,
+    alignItems: 'center',
   },
   playbackRateLabel: {
     fontSize: 16,
@@ -406,20 +411,16 @@ const styles = StyleSheet.create({
   playbackRateButtons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    width: '60%',
   },
   rateButton: {
     padding: 10,
     borderRadius: 5,
-    backgroundColor: '#f0f0f0',
-  },
-  activeRateButton: {
     backgroundColor: '#007AFF',
+    marginHorizontal: 10,
   },
   rateButtonText: {
     fontSize: 16,
-    color: '#000',
-  },
-  activeRateButtonText: {
     color: '#fff',
   },
 });
