@@ -11,9 +11,8 @@ import {
 } from 'react-native';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
-import { Ionicons } from '@expo/vector-icons'; // Importing icons
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
-// Helper function for fetching audio and alignment
 const fetchAudioAndAlignment = async (
   text: string,
   storyId: string,
@@ -24,7 +23,6 @@ const fetchAudioAndAlignment = async (
   const New_URL = `${url}/fetchAudioAndAlignment`;
 
   try {
-    // Fetch audio and alignment data from the server
     const response = await fetch(New_URL, {
       method: 'POST',
       headers: {
@@ -40,41 +38,32 @@ const fetchAudioAndAlignment = async (
 
     const data = await response.json();
 
-    // Validate alignment and audio data
     if (!data.alignment || !data.audioBase64) {
       throw new Error('Invalid data received from server');
     }
 
-    // Decode Base64 audio and save to file
     const base64Audio = data.audioBase64;
     const fileUri = `${FileSystem.cacheDirectory}audio.mp3`;
     await FileSystem.writeAsStringAsync(fileUri, base64Audio, {
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    // Verify file existence
     const fileInfo = await FileSystem.getInfoAsync(fileUri);
     if (!fileInfo.exists) {
       throw new Error('Failed to save audio file');
     }
 
-    // Parse and transform alignment data to word-level timing
     let parsedAlignment =
       typeof data.alignment === 'string'
         ? JSON.parse(data.alignment)
         : data.alignment;
 
-    // Clean up the text by replacing non-breaking spaces and trimming whitespace
     const cleanedText = text.replace(/\u00A0/g, ' ').trim();
-
-    // Split the text into tokens (words and spaces)
     const tokens = cleanedText.match(/(\S+|\s+)/g) || [];
 
-    // Extract alignment character data
     const {
       character_start_times_seconds,
       character_end_times_seconds,
-      characters,
     } = parsedAlignment;
 
     const wordTimings = [];
@@ -87,21 +76,20 @@ const fetchAudioAndAlignment = async (
         const startIndex = characterIndex;
         const endIndex = characterIndex + wordLength - 1;
 
-        // Ensure indices are within bounds
         if (
           startIndex < character_start_times_seconds.length &&
           endIndex < character_end_times_seconds.length
         ) {
           const startTime =
-            character_start_times_seconds[startIndex] * 1000; // Convert to milliseconds
+            character_start_times_seconds[startIndex] * 1000;
           const endTime =
-            character_end_times_seconds[endIndex] * 1000; // Convert to milliseconds
+            character_end_times_seconds[endIndex] * 1000;
 
           wordTimings.push({
             word: token,
             startTime,
             endTime,
-            tokenIndex: index, // Use index from tokens array
+            tokenIndex: index,
           });
         } else {
           console.warn(`Indices out of bounds for word "${token}"`);
@@ -109,7 +97,6 @@ const fetchAudioAndAlignment = async (
 
         characterIndex += wordLength;
       } else {
-        // For non-word tokens (spaces, punctuation), increment characterIndex
         characterIndex += token.length;
       }
     });
@@ -155,15 +142,12 @@ const NarrationText: React.FC<NarrationTextProps> = ({
   const [playbackRate, setPlaybackRate] = useState<number>(1.0);
   const audioRef = useRef<Audio.Sound | null>(null);
 
-  // Refs for scrolling
   const scrollViewRef = useRef<ScrollView>(null);
   const wordRefs = useRef<{ [key: number]: Text | null }>({});
 
-  // Fetch alignment and audio when text changes
   useEffect(() => {
     let isMounted = true;
 
-    // Unload any existing audio
     if (audioRef.current) {
       audioRef.current
         .unloadAsync()
@@ -176,7 +160,6 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 
     const updateAlignmentAndAudio = async () => {
       try {
-        // Fetch alignment data and audio URI
         const { alignment, audioUri } = await fetchAudioAndAlignment(
           text,
           storyId,
@@ -188,7 +171,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
           setAlignment(alignment);
           setAudioUri(audioUri);
           setHighlightedWordIndex(null);
-          wordRefs.current = {}; // Reset word refs
+          wordRefs.current = {};
         }
       } catch (error) {
         Alert.alert('Error', `Failed to fetch alignment data: ${error.message}`);
@@ -205,10 +188,8 @@ const NarrationText: React.FC<NarrationTextProps> = ({
   const handlePlayAudio = async () => {
     try {
       if (audio) {
-        // Audio is already loaded, resume playback
         await audio.playAsync();
       } else {
-        // Load the audio
         if (!audioUri) {
           Alert.alert('Error', 'Audio file is not available');
           return;
@@ -271,8 +252,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
     let right = alignment.length - 1;
     let highlightedWord = null;
 
-    // Adjusted time comparisons for minor discrepancies
-    const tolerance = 50; // milliseconds
+    const tolerance = 50;
 
     while (left <= right) {
       const mid = Math.floor((left + right) / 2);
@@ -315,7 +295,7 @@ const NarrationText: React.FC<NarrationTextProps> = ({
           (x, y, width, height) => {
             scrollViewRef.current?.scrollTo({
               x: 0,
-              y: y - 50, // Adjust 50 to control vertical offset
+              y: y - 50,
               animated: true,
             });
           }
@@ -349,7 +329,6 @@ const NarrationText: React.FC<NarrationTextProps> = ({
     });
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (audioRef.current) {
@@ -377,19 +356,17 @@ const NarrationText: React.FC<NarrationTextProps> = ({
               name={isPlaying ? 'pause' : 'play'}
               size={24}
               color="#fff"
-              style={styles.buttonIcon}
             />
             <Text style={styles.playbackButtonText}>
-              {isPlaying ? 'Pause Audio' : 'Start Reading'}
+              {isPlaying ? 'Pause' : 'Play'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.rateButton}
+            style={styles.speedButton}
             onPress={() => handleSetPlaybackRate('slow')}
           >
-            <Ionicons name="remove" size={20} color="#fff" />
-            <Text style={styles.rateButtonText}>Slow</Text>
+            <MaterialIcons name="fast-rewind" size={24} color="#fff" />
           </TouchableOpacity>
 
           <Text style={styles.playbackRateValue}>
@@ -397,11 +374,10 @@ const NarrationText: React.FC<NarrationTextProps> = ({
           </Text>
 
           <TouchableOpacity
-            style={styles.rateButton}
+            style={styles.speedButton}
             onPress={() => handleSetPlaybackRate('fast')}
           >
-            <Ionicons name="add" size={20} color="#fff" />
-            <Text style={styles.rateButtonText}>Fast</Text>
+            <MaterialIcons name="fast-forward" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -412,84 +388,73 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 const styles = StyleSheet.create({
   narrationContainer: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5', // Light background color
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#ffffff',
   },
   narrationText: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
   word: {
-    color: '#333',
-    fontSize: 20,
+    color: '#1e1e1e',
+    fontSize: 18,
     fontWeight: '400',
-    lineHeight: 30,
+    lineHeight: 28,
   },
   highlightedWord: {
-    backgroundColor: '#ffeb3b', // Yellow highlight
-    borderRadius: 5,
+    backgroundColor: '#ffdd57',
+    borderRadius: 4,
     overflow: 'hidden',
   },
   controls: {
-    marginTop: 10,
+    marginTop: 15,
     alignItems: 'center',
   },
   controlRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    flexWrap: 'wrap',
+    justifyContent: 'center',
+    flexWrap: 'nowrap',
   },
   playbackButton: {
     flexDirection: 'row',
-    backgroundColor: '#6200ee', // Primary color
-    paddingVertical: 12,
+    backgroundColor: '#4a90e2',
+    paddingVertical: 10,
     paddingHorizontal: 15,
-    borderRadius: 25,
+    borderRadius: 30,
     alignItems: 'center',
-    marginHorizontal: 5,
-    marginBottom: 10,
-    elevation: 3, // For Android shadow
-    shadowColor: '#000', // For iOS shadow
-    shadowOffset: { width: 0, height: 2 }, // For iOS shadow
-    shadowOpacity: 0.3, // For iOS shadow
-    shadowRadius: 3, // For iOS shadow
+    marginHorizontal: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
   },
   playbackButtonText: {
     color: '#fff',
     fontSize: 16,
-    marginLeft: 5,
+    marginLeft: 6,
     fontWeight: '600',
   },
-  buttonIcon: {
-    marginRight: 5,
-  },
-  rateButton: {
-    flexDirection: 'row',
+  speedButton: {
+    backgroundColor: '#4a90e2',
+    padding: 10,
+    borderRadius: 30,
     alignItems: 'center',
-    backgroundColor: '#03a9f4', // Secondary color
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 25,
-    marginHorizontal: 5,
-    marginBottom: 10,
-    elevation: 2, // For Android shadow
-    shadowColor: '#000', // For iOS shadow
-    shadowOffset: { width: 0, height: 1 }, // For iOS shadow
-    shadowOpacity: 0.25, // For iOS shadow
-    shadowRadius: 2, // For iOS shadow
-  },
-  rateButtonText: {
-    fontSize: 14,
-    color: '#fff',
-    marginLeft: 5,
-    fontWeight: '500',
+    justifyContent: 'center',
+    marginHorizontal: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
   },
   playbackRateValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
-    marginHorizontal: 5,
+    color: '#1e1e1e',
+    marginHorizontal: 8,
   },
 });
 
