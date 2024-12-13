@@ -68,15 +68,15 @@ const ConfigurationPage: React.FC<ConfigurationPageProps> = ({
 
           {/* Language Dropdown */}
           <View style={styles.languageContainer}>
-            <Text style={styles.label}>Language</Text>
-            <RNPickerSelect
-              onValueChange={(value) => setLanguage(value)}
-              items={languageOptions}
-              value={language}
-              placeholder={{ label: 'Select a language', value: null }}
-              style={pickerSelectStyles}
-            />
-          </View>
+  <Text style={styles.label}>Language</Text>
+  <RNPickerSelect
+    onValueChange={(value) => setLanguage(value)}
+    items={languageOptions}
+    value={language}
+    placeholder={{}} // Ensure no placeholder to display "English" by default
+    style={pickerSelectStyles}
+  />
+</View>
 
           <View style={styles.switchContainer}>
             <Text style={styles.label}>{musicOn ? 'Music On' : 'Music Off'}</Text>
