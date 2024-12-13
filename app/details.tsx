@@ -7,7 +7,6 @@ import StoryPage from '../components/Kahani/StoryPage';
 import Navigation from '../components/Kahani/Navigation';
 import NarrationText from '../components/Kahani/NarrationText';
 import ConfigurationPage from '../components/Kahani/ConfigurationPage';
-import GestureRecognizer from 'react-native-swipe-gestures';
 
 // Define types for route params
 type RouteParams = {
@@ -28,8 +27,6 @@ interface Story {
   author: string;
   languages: string;
 }
-
-
 
 const StoryViewer: React.FC = () => {
   const URL = config.url;
@@ -96,7 +93,7 @@ const StoryViewer: React.FC = () => {
   const page = storyData[currentPage];
 
   const onContinue = () => {
-    setCurrentPage(1);
+    setCurrentPage(1); // Change the currentPage to 1
   };
 
   const onNarrationEnd = () => {
@@ -105,47 +102,42 @@ const StoryViewer: React.FC = () => {
     }
   };
 
-  if (page.page_no === 0) {
+  if (currentPage === 0) {
     return (
       <ConfigurationPage
         image={page.image_path}
         onContinue={onContinue}
-        story={story} // Pass the correct `story` object
+        story={story}
       />
     );
   }
 
   return (
-    <GestureRecognizer
-      onSwipeLeft={nextPageHandler}
-      onSwipeRight={prevPageHandler}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <StoryPage
-        page = {page}
+        page={page}
         currentPage={currentPage}
         backgroundMusicUrl={backgroundMusicUrl}
       >
         {(pRef: React.RefObject<any>) => (
-          <Navigation 
+          <Navigation
             page={page}
             currentPage={currentPage}
             totalPages={storyData.length}
-            nextPage={nextPage}
-            prevPage={prevPage}
+            nextPage={nextPageHandler}
+            prevPage={prevPageHandler}
             pRef={pRef}
           />
-
         )}
-        
       </StoryPage>
       <NarrationText
-            text={page.parent_narration_text}
-            backgroundMusicUrl={backgroundMusicUrl}
-            storyId={storyId}
-            currentPage={currentPage}
-          />
-    </GestureRecognizer>
+        text={page.parent_narration_text}
+        backgroundMusicUrl={backgroundMusicUrl}
+        storyId={storyId}
+        currentPage={currentPage}
+        onNarrationEnd={onNarrationEnd}
+      />
+    </View>
   );
 };
 
