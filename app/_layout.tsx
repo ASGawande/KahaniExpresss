@@ -14,7 +14,7 @@ export default function RootLayout() {
       }}>
       <Stack.Screen name="index" options={{ headerShown: false }}/>
       <Stack.Screen name="RegisterScreen" options={{ title: 'Registration',}}/>
-      <Stack.Screen name="HomePage" options={{ title: 'StorySelector',}}/>
+      <Stack.Screen name="HomePage" options={{ headerShown: false }}/>
       <Stack.Screen name="details" options={{ title: 'StoryViewer',}} />
     
     </Stack>
