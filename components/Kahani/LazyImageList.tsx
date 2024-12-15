@@ -64,7 +64,7 @@ const LazyImageList: React.FC = () => {
     const title = (item.title || '').toLowerCase();
     const description = (item.description || '').toLowerCase();
     const search = searchTerm.toLowerCase();
-    
+
     return title.includes(search) || description.includes(search);
   });
 
@@ -92,7 +92,24 @@ const LazyImageList: React.FC = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Search Textbox at the Top */}
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        <Image 
+          source={require('../../assets/images/Kahani_Express_tran.png')} 
+          style={styles.logoImage}
+        />
+        <View style={styles.headerRight}>
+          <Text style={styles.username}>user</Text>
+          <TouchableOpacity style={styles.userImageContainer}>
+            <Image 
+              source={require('../../assets/images/Default_User_Icon.png')} 
+              style={styles.userImage}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Search Textbox */}
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -121,6 +138,39 @@ const LazyImageList: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: '#fff',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  username: {
+    marginRight: 10,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  logoImage: {
+    width: 100,
+    height: 90,
+    resizeMode: 'contain',
+  },
+  userImageContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 25,
+    overflow: 'hidden',
+  },
+  userImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
   searchContainer: {
     padding: 10,
     backgroundColor: '#fff',
