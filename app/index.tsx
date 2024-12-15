@@ -1,5 +1,3 @@
-// app/index.tsx (LoginScreen)
-
 import React, { useState } from 'react';
 import {
   View,
@@ -12,9 +10,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebaseConfig'; // Import the initialized Firebase Auth instance
-
-
+import { auth } from './firebaseConfig'; // Make sure this points to your Firebase config
+import Icon from 'react-native-vector-icons/Ionicons'; // Ensure this package is installed
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -22,6 +19,7 @@ const LoginScreen = () => {
   // State variables for input values
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   // State variables for error messages
   const [emailError, setEmailError] = useState('');
@@ -58,7 +56,7 @@ const LoginScreen = () => {
 
     if (isValid) {
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, email, password);
         navigation.navigate('HomePage'); // Adjust this navigation to your desired screen
       } catch (error) {
         Alert.alert('Login Error', 'Invalid user credentials');
@@ -68,38 +66,58 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/images/icon.png')} style={styles.logo} />
-      <Text style={styles.title}>Welcome to KahaniExpress</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Email"
-        placeholderTextColor="#999"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
+      {/* Logo */}
+      <Image 
+        source={require('../assets/images/Kahani_Express_tran.png')} 
+        style={styles.logo}
       />
+
+      {/* Email Input */}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="E-mail address"
+          placeholderTextColor="#ccc"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+      </View>
       {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Password"
-        placeholderTextColor="#999"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      {/* Password Input with Visibility Toggle */}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#ccc"
+          secureTextEntry={!isPasswordVisible}
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+        >
+          <Icon 
+            name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
+            size={24} 
+            color="#999" 
+          />
+        </TouchableOpacity>
+      </View>
       {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
+      {/* Login Button */}
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+        <Text style={styles.buttonText}>Log in</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
-        <Text style={styles.linkText}>New to KahaniExpress? Register</Text>
-      </TouchableOpacity>
-      
+      {/* Forgot Password Link */}
+      {/* <TouchableOpacity onPress={() => navigation.navigate('ForgotPasswordScreen')}>
+        <Text style={styles.linkText}>I forgot my password</Text>
+      </TouchableOpacity> */}
     </View>
   );
 };
@@ -107,54 +125,66 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFECB3',
+    backgroundColor: '#4A2E83', // Purple background
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 20,
   },
   logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
+    width: 1200,
+    height: 300,
+    resizeMode: 'contain',
+    marginBottom: 60,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FF6F00',
-    marginBottom: 30,
+  inputContainer: {
+    width: '100%',
+    position: 'relative',
+    marginBottom: 15,
   },
   input: {
-    width: '80%',
+    width: '100%',
     height: 50,
-    backgroundColor: '#FFF8E1',
-    borderRadius: 25,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     paddingLeft: 20,
-    marginTop: 10,
-    fontSize: 18,
+    fontSize: 16,
+    color: '#000',
+  },
+  iconContainer: {
+    position: 'absolute',
+    right: 15,
+    top: 13,
   },
   errorText: {
-    width: '80%',
+    width: '100%',
     color: 'red',
     fontSize: 14,
-    marginTop: 5,
-    paddingLeft: 20,
+    marginBottom: 5,
+    paddingLeft: 5,
   },
   button: {
-    width: '80%',
-    backgroundColor: '#FF6F00',
-    borderRadius: 25,
+    width: '100%',
+    backgroundColor: '#00AEEF', // Blue button color
+    borderRadius: 8,
     padding: 15,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 15,
+    // Optional shadow
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
   },
   buttonText: {
     color: '#FFF',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   linkText: {
-    color: '#FF6F00',
+    color: '#FFF',
     marginTop: 20,
-    fontSize: 16,
+    fontSize: 14,
+    textDecorationLine: 'underline',
   },
 });
 
