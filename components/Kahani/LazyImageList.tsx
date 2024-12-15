@@ -139,12 +139,14 @@ const LazyImageList: React.FC = () => {
 
 const styles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f8f8', // Classic neutral background for header
     paddingVertical: 10,
     paddingHorizontal: 15,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
   headerRight: {
     flexDirection: 'row',
@@ -154,17 +156,20 @@ const styles = StyleSheet.create({
     marginRight: 10,
     fontSize: 16,
     fontWeight: '500',
+    color: '#333', // Subtle text color
   },
   logoImage: {
-    width: 100,
-    height: 90,
+    width: 120,
+    height: 60,
     resizeMode: 'contain',
   },
   userImageContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#ddd', // Subtle border for the avatar
   },
   userImage: {
     width: '100%',
@@ -172,8 +177,8 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   searchContainer: {
-    padding: 10,
-    backgroundColor: '#fff',
+    padding: 15,
+    backgroundColor: '#f8f8f8',
   },
   searchInput: {
     height: 40,
@@ -182,52 +187,54 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingLeft: 10,
     fontSize: 16,
+    backgroundColor: '#fff',
   },
   container: {
-    maxWidth: 1200,
-    margin: 20,
-    padding: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 20,
     alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 153,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  description: {
-    fontSize: 13,
-    marginBottom: 16,
   },
   cardContainer: {
-    flex: 1,
+    width: '90%', // Uniform width for all cards
     backgroundColor: 'white',
-    padding: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 20,
+    elevation: 3, // Subtle shadow on Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
   },
   storyCard: {
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: 16,
+    alignItems: 'center',
   },
   storyImageCard: {
-    width: 300,
-    height: 350,
+    width: '100%',
+    height: 200, // Fixed height for consistency
   },
   storyTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    padding: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    padding: 10,
+    color: '#333',
+    textAlign: 'center',
+    backgroundColor: '#f9f9f9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  description: {
+    fontSize: 14,
+    color: '#555',
+    padding: 10,
+    textAlign: 'justify',
+    lineHeight: 20,
   },
   footer: {
     padding: 20,
     alignItems: 'center',
   },
 });
+
 
 export default LazyImageList;
