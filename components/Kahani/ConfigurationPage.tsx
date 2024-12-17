@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface Story {
   title: string;
@@ -29,15 +30,15 @@ const ConfigurationPage: React.FC<ConfigurationPageProps> = ({
   story,
 }) => {
   const [musicOn, setMusicOn] = useState<boolean>(true);
-  const [selfReading, setSelfReading] = useState<boolean>(false);
-  const [language, setLanguage] = useState<string>('English');
+  const [autoplay, setAutoplay] = useState<boolean>(false);
+  const [language, setLanguage] = useState<string>('english');
 
   const handleMusicToggle = () => {
     setMusicOn((prev) => !prev);
   };
 
-  const handleSelfReadingToggle = () => {
-    setSelfReading((prev) => !prev);
+  const handleAutoplayToggle = () => {
+    setAutoplay((prev) => !prev);
   };
 
   const handleContinue = () => {
@@ -47,48 +48,63 @@ const ConfigurationPage: React.FC<ConfigurationPageProps> = ({
   const storyteller = story.author || 'Kahani Express';
 
   // Prepare the dropdown options
-  const languageOptions = Object.entries(
-     {
-      english: 'English',
-      hindi: 'Hindi',
-      spanish: 'Spanish',
-      tamil: 'Tamil',
-    }
-  ).map(([key, value]) => ({ 
-    label: value, // Full name of the language (e.g., "English")
-    value: key, // Language key (e.g., "english")
+  const languageOptions = Object.entries({
+    english: 'English',
+    hindi: 'Hindi',
+    spanish: 'Spanish',
+    tamil: 'Tamil',
+  }).map(([key, value]) => ({
+    label: value,
+    value: key,
   }));
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
         <Image source={{ uri: image }} style={styles.image} />
+
         <View style={styles.content}>
+          {/* Controls Row */}
+          <View style={styles.controlsRow}>
+            <View style={styles.controlItem}>
+              <View style={styles.iconLabel}>
+                <Icon name="language" size={20} color="#333" style={styles.icon} />
+                <Text style={styles.label}>Language</Text>
+              </View>
+              <RNPickerSelect
+                onValueChange={(value) => setLanguage(value)}
+                items={languageOptions}
+                value={language}
+                placeholder={{}}
+                style={pickerSelectStyles}
+                useNativeAndroidPickerStyle={false}
+              />
+            </View>
+
+            <View style={styles.controlItem}>
+              <View style={styles.iconLabel}>
+                <Icon name="music-note" size={20} color="#333" style={styles.icon} />
+                <Text style={styles.label}>Music</Text>
+              </View>
+              <Switch value={musicOn} onValueChange={handleMusicToggle} />
+            </View>
+
+            <View style={styles.controlItem}>
+              <View style={styles.iconLabel}>
+                <Icon name="play-arrow" size={20} color="#333" style={styles.icon} />
+                <Text style={styles.label}>Autoplay</Text>
+              </View>
+              <Switch value={autoplay} onValueChange={handleAutoplayToggle} />
+            </View>
+          </View>
+
+          {/* Start Reading Button before Title */}
+          <TouchableOpacity style={styles.button} onPress={handleContinue}>
+            <Text style={styles.buttonText}>START READING</Text>
+          </TouchableOpacity>
+
+          {/* Heading after Start Reading button */}
           <Text style={styles.title}>{story.title}</Text>
-
-          {/* Language Dropdown */}
-          <View style={styles.languageContainer}>
-  <Text style={styles.label}>Language</Text>
-  <RNPickerSelect
-    onValueChange={(value) => setLanguage(value)}
-    items={languageOptions}
-    value={language}
-    placeholder={{}} // Ensure no placeholder to display "English" by default
-    style={pickerSelectStyles}
-  />
-</View>
-
-          <View style={styles.switchContainer}>
-            <Text style={styles.label}>{musicOn ? 'Music On' : 'Music Off'}</Text>
-            <Switch value={musicOn} onValueChange={handleMusicToggle} />
-          </View>
-
-          <View style={styles.switchContainer}>
-            <Text style={styles.label}>
-              {selfReading ? 'Self-Reading On' : 'Self-Reading Off'}
-            </Text>
-            <Switch value={selfReading} onValueChange={handleSelfReadingToggle} />
-          </View>
 
           <Text style={styles.description}>
             <Text style={styles.boldText}>Description: </Text>
@@ -99,10 +115,6 @@ const ConfigurationPage: React.FC<ConfigurationPageProps> = ({
             <Text style={styles.boldText}>Storyteller: </Text>
             {storyteller}
           </Text>
-
-          <TouchableOpacity style={styles.button} onPress={handleContinue}>
-            <Text style={styles.buttonText}>Start Reading</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -133,96 +145,94 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 250, // Adjusted height for better fit on mobile
+    height: 250,
     resizeMode: 'cover',
   },
   content: {
-    padding: 12,
+    padding: 16,
   },
-  title: {
-    fontSize: 22, // Reduced font size for better fit
-  
-    fontWeight: 'bold',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  optionsRow: {
+  controlsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    flexWrap: 'wrap',
   },
-  optionItem: {
-    flex: 1,
+  controlItem: {
     alignItems: 'center',
-    marginHorizontal: 8,
+    width: '30%',
+    minWidth: 100,
+  },
+  iconLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    justifyContent: 'center',
+  },
+  icon: {
+    marginRight: 4,
   },
   label: {
-    fontSize: 14, // Reduced font size
-    marginBottom: 4,
+    fontSize: 14,
     textAlign: 'center',
-  },
-  switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  description: {
-    fontSize: 14, // Reduced font size for better readability
-    marginBottom: 8,
-    textAlign: 'justify',
-  },
-  boldText: {
-    fontWeight: 'bold',
+    color: '#333',
   },
   button: {
-    marginTop: 16,
-    backgroundColor: '#1976D2',
-    paddingVertical: 12, // Reduced padding for compact fit
+    marginBottom: 24,
+    backgroundColor: '#7B61FF',
+    paddingVertical: 14,
     borderRadius: 8,
   },
   buttonText: {
     color: '#fff',
     textAlign: 'center',
-    fontSize: 16, // Reduced font size
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#333',
+  },
+  description: {
+    fontSize: 14,
+    marginBottom: 8,
+    textAlign: 'justify',
+    color: '#444',
+  },
+  boldText: {
+    fontWeight: 'bold',
+    color: '#333',
   },
 });
 
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     fontSize: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 10,
-    color: 'black',
-    backgroundColor: '#f9f9f9',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 2 },
-    width: '100%', // Full width for mobile responsiveness
-    marginBottom: 8, // Add spacing between elements
+    borderRadius: 8,
+    color: '#333',
+    backgroundColor: '#fff',
+    width: '100%',
   },
   inputAndroid: {
     fontSize: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 10,
-    color: 'black',
-    backgroundColor: '#f9f9f9',
-    elevation: 3, // Adds shadow for Android
+    borderRadius: 8,
+    color: '#333',
+    backgroundColor: '#fff',
     width: '100%',
-    marginBottom: 8,
   },
   placeholder: {
-    color: '#999', // Placeholder text color
+    color: '#999',
     fontSize: 16,
   },
 });
-

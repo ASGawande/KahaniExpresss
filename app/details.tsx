@@ -54,7 +54,7 @@ const StoryViewer: React.FC = () => {
             setStory({
               title: storybook.title || 'Default Story Title',
               description: storybook.description || 'Default Story Description',
-              author: storybook.author || 'Author',
+              author: storybook.author ,
               languages: storybook.languages || 'English',
             });
             setStoryData(storybook.pages);
