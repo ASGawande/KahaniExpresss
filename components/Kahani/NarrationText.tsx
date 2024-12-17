@@ -403,9 +403,9 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   highlightedWord: {
-    backgroundColor: '#ffdd57',
-    borderRadius: 4,
-    overflow: 'hidden',
+    borderBottomWidth: 1,          // Adds an underline
+  borderStyle: 'dotted',         // Makes the underline dotted
+  borderBottomColor: 'black',  // Sets the underline color (yellow)
   },
   controls: {
     marginTop: 15,
@@ -457,5 +457,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
 });
+
 
 export default NarrationText;
