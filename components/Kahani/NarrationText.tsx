@@ -347,40 +347,44 @@ const NarrationText: React.FC<NarrationTextProps> = ({
       </ScrollView>
 
       <View style={styles.controls}>
-        <View style={styles.controlRow}>
-          <TouchableOpacity
-            style={styles.playbackButton}
-            onPress={isPlaying ? handlePauseAudio : handlePlayAudio}
-          >
-            <Ionicons
-              name={isPlaying ? 'pause' : 'play'}
-              size={24}
-              color="#fff"
-            />
-            <Text style={styles.playbackButtonText}>
-              {isPlaying ? 'Pause' : 'Play'}
-            </Text>
-          </TouchableOpacity>
+  <View style={styles.controlRow}>
+    <TouchableOpacity
+      style={styles.playbackButton}
+      onPress={isPlaying ? handlePauseAudio : handlePlayAudio}
+    >
+      <Ionicons
+        name={isPlaying ? 'pause' : 'play'}
+        size={24}
+        color="#fff"
+      />
+      <Text style={styles.playbackButtonText}>
+        {isPlaying ? 'Pause' : 'Play'}
+      </Text>
+    </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.speedButton}
-            onPress={() => handleSetPlaybackRate('slow')}
-          >
-            <MaterialIcons name="fast-rewind" size={24} color="#fff" />
-          </TouchableOpacity>
+    {/* Slow Button with Tortoise Emoji */}
+    <TouchableOpacity
+      style={styles.speedButton}
+      onPress={() => handleSetPlaybackRate('slow')}
+    >
+      <Text style={styles.emojiIcon}>🐢</Text>
+    </TouchableOpacity>
 
-          <Text style={styles.playbackRateValue}>
-            {playbackRate.toFixed(2)}x
-          </Text>
+    <Text style={styles.playbackRateValue}>
+      {playbackRate.toFixed(2)}x
+    </Text>
 
-          <TouchableOpacity
-            style={styles.speedButton}
-            onPress={() => handleSetPlaybackRate('fast')}
-          >
-            <MaterialIcons name="fast-forward" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </View>
+    {/* Fast Button with Rabbit Emoji */}
+    <TouchableOpacity
+      style={styles.speedButton}
+      onPress={() => handleSetPlaybackRate('fast')}
+    >
+      <Text style={styles.emojiIcon}>🐇</Text>
+    </TouchableOpacity>
+  </View>
+</View>
+
+
     </View>
   );
 };
@@ -455,6 +459,24 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1e1e1e',
     marginHorizontal: 8,
+  },
+  speedButton: {
+    backgroundColor: '#fff', // White background
+    padding: 10,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  emojiIcon: {
+    fontSize: 32, // Large emoji size
+    color: '#4a90e2', // Optional: Change emoji color to match theme
+    textAlign: 'center',
   },
 });
 
