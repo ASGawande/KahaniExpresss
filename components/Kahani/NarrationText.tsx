@@ -12,6 +12,8 @@ import {
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import PlayButton from './PlayButton';
+
 
 const fetchAudioAndAlignment = async (
   text: string,
@@ -21,7 +23,7 @@ const fetchAudioAndAlignment = async (
 ) => {
   const url = 'https://kahanijsondata.azurewebsites.net';
   const New_URL = `${url}/fetchAudioAndAlignment`;
-
+  
   try {
     const response = await fetch(New_URL, {
       method: 'POST',
@@ -303,7 +305,11 @@ const NarrationText: React.FC<NarrationTextProps> = ({
       }
     }
   };
+  
 
+  const togglePlay = () => {
+    setIsPlaying((prev) => !prev);
+  };
   const renderText = (): JSX.Element[] => {
     const tokens = text.match(/(\S+|\s+)/g) || [];
 
@@ -348,20 +354,11 @@ const NarrationText: React.FC<NarrationTextProps> = ({
 
       <View style={styles.controls}>
   <View style={styles.controlRow}>
-    <TouchableOpacity
-      style={styles.playbackButton}
-      onPress={isPlaying ? handlePauseAudio : handlePlayAudio}
-    >
-      <Ionicons
-        name={isPlaying ? 'pause' : 'play'}
-        size={24}
-        color="#fff"
-      />
-      <Text style={styles.playbackButtonText}>
-        {isPlaying ? 'Pause' : 'Play'}
-      </Text>
-    </TouchableOpacity>
-
+    
+      <View  style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <PlayButton  isPlaying={isPlaying} onTogglePlay={isPlaying ? handlePauseAudio : handlePlayAudio} />
+    </View>
+    
     {/* Slow Button with Tortoise Emoji */}
     <TouchableOpacity
       style={styles.speedButton}
@@ -421,20 +418,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexWrap: 'nowrap',
   },
-  playbackButton: {
-    flexDirection: 'row',
-    backgroundColor: '#4a90e2',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 30,
-    alignItems: 'center',
-    marginHorizontal: 8,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-  },
+ 
   playbackButtonText: {
     color: '#fff',
     fontSize: 16,
@@ -477,6 +461,28 @@ const styles = StyleSheet.create({
     fontSize: 32, // Large emoji size
     color: '#4a90e2', // Optional: Change emoji color to match theme
     textAlign: 'center',
+  },
+  playButton: {
+    backgroundColor: '#ffcc00', // Bright Yellow Background
+    width: 70,
+    height: 70,
+    borderRadius: 35, // Circular Shape
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#ff9900', // Orange Border
+    elevation: 3, // Android Shadow
+    shadowColor: '#000', // iOS Shadow
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  playIcon: {
+    fontSize: 36, // Large Play/Pause Icon
+    color: '#ffffff', // White Icon Color
+    textShadowColor: 'rgba(0, 0, 0, 0.3)', // Slight Shadow for Depth
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 3,
   },
 });
 
