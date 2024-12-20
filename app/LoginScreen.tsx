@@ -111,7 +111,7 @@ const LoginScreen = () => {
 
       {/* Login Button */}
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Log in</Text>
+        <Text style={styles.buttonText}>Log in 🔓</Text>
       </TouchableOpacity>
 
       {/* Forgot Password Link */}

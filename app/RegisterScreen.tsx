@@ -200,16 +200,16 @@ const RegisterScreen = () => {
       <View style={styles.buttonContainer}>
         {step > 1 && (
           <TouchableOpacity style={styles.navButton} onPress={() => setStep(step - 1)}>
-            <Text style={styles.navButtonText}>Back</Text>
-          </TouchableOpacity>
+          <Text style={styles.navButtonText}>👈 Back</Text>
+        </TouchableOpacity>
         )}
         {step < 3 && (
           <TouchableOpacity
-            style={[styles.navButton, { opacity: (step === 1 ? isStepOneValid : isStepTwoValid) ? 1 : 0.5 }]}
-            onPress={handleNext}
-          >
-            <Text style={styles.navButtonText}>Next</Text>
-          </TouchableOpacity>
+          style={[styles.navButton, { opacity: (step === 1 ? isStepOneValid : isStepTwoValid) ? 1 : 0.5 }]}
+          onPress={handleNext}
+        >
+          <Text style={styles.navButtonText}>Next 🚀</Text>
+        </TouchableOpacity>
         )}
       </View>
 
@@ -218,7 +218,7 @@ const RegisterScreen = () => {
           style={[styles.button, { opacity: isStepThreeValid ? 1 : 0.5 }]}
           onPress={handleRegister}
         >
-          <Text style={styles.buttonText}>Register</Text>
+          <Text style={styles.buttonText}>Register ✨</Text>
         </TouchableOpacity>
       )}
 
