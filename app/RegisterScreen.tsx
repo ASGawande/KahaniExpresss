@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  FlatList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { auth, firestore } from './firebaseConfig'; // Import Firebase auth and firestore
@@ -17,6 +18,7 @@ const RegisterScreen = () => {
   const navigation = useNavigation();
 
   const [step, setStep] = useState(1);
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [showErrors, setShowErrors] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -25,11 +27,21 @@ const RegisterScreen = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const isStepOneValid = firstName && lastName && age;
-  const isStepTwoValid = email && password && confirmPassword && password === confirmPassword;
+  const avatars = [
+    require('../assets/images/Default_User_Icon.png'),
+    require('../assets/images/Default_User_Icon.png'),
+    require('../assets/images/Default_User_Icon.png'),
+    require('../assets/images/Default_User_Icon.png'),
+    require('../assets/images/Default_User_Icon.png'),
+    require('../assets/images/Default_User_Icon.png'),
+  ];
+
+  const isStepOneValid = selectedAvatar !== null;
+  const isStepTwoValid = firstName && lastName && age;
+  const isStepThreeValid = email && password && confirmPassword && password === confirmPassword;
 
   const handleNext = () => {
-    if (!isStepOneValid) {
+    if ((step === 1 && !isStepOneValid) || (step === 2 && !isStepTwoValid)) {
       setShowErrors(true);
     } else {
       setShowErrors(false);
@@ -38,34 +50,63 @@ const RegisterScreen = () => {
   };
 
   const handleRegister = async () => {
-    if (!isStepOneValid || !isStepTwoValid) {
+    if (!isStepOneValid || !isStepTwoValid || !isStepThreeValid) {
       setShowErrors(true);
       return;
     }
-
+  
     try {
       // Create user with Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
+  
       // Store user information in Firestore
-      await setDoc(doc(firestore, 'users', user.uid), {
+      const userRef = doc(firestore, `users/${user.uid}`);
+      await setDoc(userRef, {
         firstName,
         lastName,
         age: parseInt(age, 10),
         email,
+        avatar: selectedAvatar, // You may want to store the avatar path or identifier instead
       });
-
+  
       Alert.alert('Registration Successful', 'Your account has been created successfully.');
       navigation.navigate('index'); // Navigate to login or home screen
     } catch (error) {
       Alert.alert('Registration Error', error.message);
     }
   };
+  
 
   const renderStep = () => {
     switch (step) {
       case 1:
+        return (
+          <>
+            <Text style={styles.title}>Select an Avatar</Text>
+            <Text style={styles.subtitle}>Choose an avatar to set your profile picture. You can change it whenever you want!</Text>
+            <FlatList
+              data={avatars}
+              numColumns={3}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.avatarContainer,
+                    selectedAvatar === item && styles.selectedAvatar,
+                  ]}
+                  onPress={() => setSelectedAvatar(item)}
+                >
+                  <Image source={item} style={[styles.avatar, selectedAvatar === item && styles.avatarSelected]} />
+                </TouchableOpacity>
+              )}
+            />
+            {showErrors && !isStepOneValid && (
+              <Text style={styles.errorText}>Please select an avatar to proceed.</Text>
+            )}
+          </>
+        );
+      case 2:
         return (
           <>
             <View style={styles.inputContainer}>
@@ -103,7 +144,7 @@ const RegisterScreen = () => {
             {showErrors && !age && <Text style={styles.errorText}>Age is required.</Text>}
           </>
         );
-      case 2:
+      case 3:
         return (
           <>
             <View style={styles.inputContainer}>
@@ -164,9 +205,9 @@ const RegisterScreen = () => {
             <Text style={styles.navButtonText}>Back</Text>
           </TouchableOpacity>
         )}
-        {step < 2 && (
+        {step < 3 && (
           <TouchableOpacity
-            style={[styles.navButton, { opacity: isStepOneValid ? 1 : 0.5 }]}
+            style={[styles.navButton, { opacity: (step === 1 ? isStepOneValid : isStepTwoValid) ? 1 : 0.5 }]}
             onPress={handleNext}
           >
             <Text style={styles.navButtonText}>Next</Text>
@@ -174,16 +215,16 @@ const RegisterScreen = () => {
         )}
       </View>
 
-      {step === 2 && (
+      {step === 3 && (
         <TouchableOpacity
-          style={[styles.button, { opacity: isStepTwoValid ? 1 : 0.5 }]}
+          style={[styles.button, { opacity: isStepThreeValid ? 1 : 0.5 }]}
           onPress={handleRegister}
         >
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}>
+      <TouchableOpacity onPress={() => navigation.navigate('index')}>
         <Text style={styles.linkText}>Already have an account? Log in</Text>
       </TouchableOpacity>
     </View>
@@ -203,6 +244,26 @@ const styles = StyleSheet.create({
     height: 300,
     resizeMode: 'contain',
     marginBottom: 60,
+  },
+  avatarContainer: {
+    width: 100,
+    height: 100,
+    margin: 10,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedAvatar: {
+    borderColor: '#00AEEF',
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  avatarSelected: {
+    opacity: 0.6,
   },
   inputContainer: {
     width: '100%',
@@ -258,6 +319,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 5,
     paddingLeft: 5,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#FFF',
+    marginBottom: 20,
+    textAlign: 'center',
   },
 });
 
