@@ -70,7 +70,7 @@ const RegisterScreen = () => {
       });
 
       Alert.alert('Registration Successful', 'Your account has been created successfully.');
-      navigation.navigate('index'); // Navigate to login or home screen
+      navigation.navigate('LoginScreen'); // Navigate to login or home screen
     } catch (error) {
       Alert.alert('Registration Error', error.message);
     }
@@ -222,7 +222,7 @@ const RegisterScreen = () => {
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity onPress={() => navigation.navigate('index')}>
+      <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}>
         <Text style={styles.linkText}>Already have an account? Log in</Text>
       </TouchableOpacity>
     </View>
