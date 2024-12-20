@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { auth, firestore } from './firebaseConfig'; // Import Firebase auth and firestore
@@ -55,11 +56,10 @@ const RegisterScreen = () => {
         email,
       });
 
-      console.log('User registered successfully!');
-      // Navigate to another screen after successful registration
-      navigation.navigate('index');
+      Alert.alert('Registration Successful', 'Your account has been created successfully.');
+      navigation.navigate('index'); // Navigate to login or home screen
     } catch (error) {
-      console.error('Registration error:', error.message);
+      Alert.alert('Registration Error', error.message);
     }
   };
 
@@ -68,66 +68,79 @@ const RegisterScreen = () => {
       case 1:
         return (
           <>
-            <TextInput
-              style={styles.input}
-              placeholder="First Name"
-              placeholderTextColor="#999"
-              value={firstName}
-              onChangeText={setFirstName}
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="First Name"
+                placeholderTextColor="#ccc"
+                value={firstName}
+                onChangeText={setFirstName}
+              />
+            </View>
             {showErrors && !firstName && <Text style={styles.errorText}>First Name is required.</Text>}
 
-            <TextInput
-              style={styles.input}
-              placeholder="Last Name"
-              placeholderTextColor="#999"
-              value={lastName}
-              onChangeText={setLastName}
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Last Name"
+                placeholderTextColor="#ccc"
+                value={lastName}
+                onChangeText={setLastName}
+              />
+            </View>
             {showErrors && !lastName && <Text style={styles.errorText}>Last Name is required.</Text>}
 
-            <TextInput
-              style={styles.input}
-              placeholder="Age"
-              placeholderTextColor="#999"
-              value={age}
-              onChangeText={setAge}
-              keyboardType="numeric"
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Age"
+                placeholderTextColor="#ccc"
+                value={age}
+                onChangeText={setAge}
+                keyboardType="numeric"
+              />
+            </View>
             {showErrors && !age && <Text style={styles.errorText}>Age is required.</Text>}
           </>
         );
       case 2:
         return (
           <>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter Email"
-              placeholderTextColor="#999"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#ccc"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
             {showErrors && !email && <Text style={styles.errorText}>Email is required.</Text>}
 
-            <TextInput
-              style={styles.input}
-              placeholder="Enter Password"
-              placeholderTextColor="#999"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#ccc"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
             {showErrors && !password && <Text style={styles.errorText}>Password is required.</Text>}
 
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm Password"
-              placeholderTextColor="#999"
-              secureTextEntry
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm Password"
+                placeholderTextColor="#ccc"
+                secureTextEntry
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
+            </View>
             {showErrors && !confirmPassword && <Text style={styles.errorText}>Confirm Password is required.</Text>}
             {showErrors && password !== confirmPassword && confirmPassword && (
               <Text style={styles.errorText}>Passwords do not match.</Text>
@@ -141,8 +154,7 @@ const RegisterScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/images/icon.png')} style={styles.logo} />
-      <Text style={styles.title}>Create an Account</Text>
+      <Image source={require('../assets/images/Kahani_Express_tran.png')} style={styles.logo} />
 
       {renderStep()}
 
@@ -171,8 +183,8 @@ const RegisterScreen = () => {
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity onPress={() => navigation.navigate('index')}>
-        <Text style={styles.linkText}>Already have an account? Login</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}>
+        <Text style={styles.linkText}>Already have an account? Log in</Text>
       </TouchableOpacity>
     </View>
   );
@@ -181,69 +193,71 @@ const RegisterScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFECB3',
+    backgroundColor: '#4A2E83',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 20,
   },
   logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
+    width: 1200,
+    height: 300,
+    resizeMode: 'contain',
+    marginBottom: 60,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FF6F00',
-    marginBottom: 30,
+  inputContainer: {
+    width: '100%',
+    marginBottom: 15,
   },
   input: {
-    width: '80%',
+    width: '100%',
     height: 50,
-    backgroundColor: '#FFF8E1',
-    borderRadius: 25,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     paddingLeft: 20,
-    marginVertical: 10,
-    fontSize: 18,
+    fontSize: 16,
+    color: '#000',
   },
   buttonContainer: {
     flexDirection: 'row',
-    marginTop: 20,
+    marginTop: 15,
+    justifyContent: 'center',
   },
   navButton: {
-    width: 100,
-    padding: 10,
+    backgroundColor: '#00AEEF',
+    padding: 12,
+    borderRadius: 8,
     marginHorizontal: 10,
-    backgroundColor: '#FF6F00',
-    borderRadius: 25,
-    alignItems: 'center',
   },
   navButtonText: {
     color: '#FFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   button: {
-    width: '80%',
-    backgroundColor: '#FF6F00',
-    borderRadius: 25,
+    width: '100%',
+    backgroundColor: '#00AEEF',
+    borderRadius: 8,
     padding: 15,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 15,
   },
   buttonText: {
     color: '#FFF',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   linkText: {
-    color: '#FF6F00',
+    color: '#FFF',
     marginTop: 20,
-    fontSize: 16,
+    fontSize: 14,
+    textDecorationLine: 'underline',
   },
   errorText: {
+    width: '100%',
     color: 'red',
     fontSize: 14,
     marginBottom: 5,
+    paddingLeft: 5,
   },
 });
 
