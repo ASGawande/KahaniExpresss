@@ -2,11 +2,11 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
-config.resolver.assetExts.push('glb');
+// Add support for additional asset extensions
+config.resolver.assetExts = config.resolver.assetExts.filter(ext => ext !== 'svg'); // Ensure no duplicates
+config.resolver.assetExts.push('glb', 'bin');
 
-// Add 'three' to the assetExts and sourceExts
-config.resolver.assetExts.push('bin');
-
+// Add support for additional source extensions
 config.resolver.sourceExts = [...config.resolver.sourceExts, 'cjs'];
 
 module.exports = config;

@@ -48,8 +48,9 @@ const Cuddles: React.FC<CuddlesProps> = ({ animationName, onAnimationsLoaded }) 
 
   return (
     <group ref={group} dispose={null}>
-      <group rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
+      <group name="Teddy_girl" rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
         <skinnedMesh
+          name="model"
           geometry={nodes.model.geometry} // Explicitly accessing SkinnedMesh properties
           material={materials['d69f64e0-e505-481a-bce7-f87835e1756e (1)']}
           skeleton={nodes.model.skeleton}
