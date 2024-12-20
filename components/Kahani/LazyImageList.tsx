@@ -27,6 +27,7 @@ interface ImageItem {
 // Define the navigation parameters
 type RootStackParamList = {
   details: { storyId: string };
+  ProfilePage: { user: { username: string; avatar: any } };
 };
 
 type NavigationProps = NavigationProp<RootStackParamList>;
@@ -108,7 +109,17 @@ const LazyImageList: React.FC = () => {
         />
         <View style={styles.headerRight}>
           <Text style={styles.username}>User</Text>
-          <TouchableOpacity style={styles.userImageContainer}>
+          <TouchableOpacity
+            style={styles.userImageContainer}
+            onPress={() =>
+              navigation.navigate('ProfilePage', {
+                user: {
+                  username: 'John Doe', // Replace with dynamic user data
+                  avatar: require('../../assets/images/Default_User_Icon.png'),
+                },
+              })
+            }
+          >
             <Image
               source={require('../../assets/images/Default_User_Icon.png')}
               style={styles.userImage}

@@ -17,7 +17,7 @@ export default function RootLayout() {
       <Stack.Screen name="RegisterScreen" options={{ headerShown: false }}/>
       <Stack.Screen name="HomePage" options={{ headerShown: false }}/>
       <Stack.Screen name="details" options={{ headerShown: false }} />
-    
+      <Stack.Screen name="ProfilePage" options={{ headerShown: false }} />
     </Stack>
   );
 }
