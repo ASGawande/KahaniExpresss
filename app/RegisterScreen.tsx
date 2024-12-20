@@ -54,29 +54,27 @@ const RegisterScreen = () => {
       setShowErrors(true);
       return;
     }
-  
+
     try {
       // Create user with Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-  
+
       // Store user information in Firestore
-      const userRef = doc(firestore, `users/${user.uid}`);
-      await setDoc(userRef, {
+      await setDoc(doc(firestore, 'users', user.uid), {
         firstName,
         lastName,
         age: parseInt(age, 10),
         email,
-        avatar: selectedAvatar, // You may want to store the avatar path or identifier instead
+        avatar: avatars[selectedAvatar],
       });
-  
+
       Alert.alert('Registration Successful', 'Your account has been created successfully.');
       navigation.navigate('index'); // Navigate to login or home screen
     } catch (error) {
       Alert.alert('Registration Error', error.message);
     }
   };
-  
 
   const renderStep = () => {
     switch (step) {
@@ -89,15 +87,15 @@ const RegisterScreen = () => {
               data={avatars}
               numColumns={3}
               keyExtractor={(_, index) => index.toString()}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
                 <TouchableOpacity
                   style={[
                     styles.avatarContainer,
-                    selectedAvatar === item && styles.selectedAvatar,
+                    selectedAvatar === index && styles.selectedAvatar,
                   ]}
-                  onPress={() => setSelectedAvatar(item)}
+                  onPress={() => setSelectedAvatar(index)}
                 >
-                  <Image source={item} style={[styles.avatar, selectedAvatar === item && styles.avatarSelected]} />
+                  <Image source={item} style={[styles.avatar, selectedAvatar === index && styles.avatarSelected]} />
                 </TouchableOpacity>
               )}
             />
