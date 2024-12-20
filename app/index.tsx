@@ -1,123 +1,41 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Alert,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebaseConfig'; // Make sure this points to your Firebase config
-import Icon from 'react-native-vector-icons/Ionicons'; // Ensure this package is installed
+import React from 'react';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation
 
-const LoginScreen = () => {
-  const navigation = useNavigation();
-
-  // State variables for input values
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-
-  // State variables for error messages
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-
-  // Regular expression for email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  // Function to handle login button press
-  const handleLogin = async () => {
-    let isValid = true;
-
-    // Reset error messages
-    setEmailError('');
-    setPasswordError('');
-
-    // Validate email
-    if (!email.trim()) {
-      setEmailError('Email is required.');
-      isValid = false;
-    } else if (!emailRegex.test(email.trim())) {
-      setEmailError('Please enter a valid email address.');
-      isValid = false;
-    }
-
-    // Validate password
-    if (!password.trim()) {
-      setPasswordError('Password is required.');
-      isValid = false;
-    } else if (password.length < 8) {
-      setPasswordError('Password must be at least 8 characters.');
-      isValid = false;
-    }
-
-    if (isValid) {
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        navigation.navigate('HomePage'); // Adjust this navigation to your desired screen
-      } catch (error) {
-        Alert.alert('Login Error', 'Invalid user credentials');
-      }
-    }
-  };
+const WelcomePage = () => {
+  const navigation = useNavigation(); // Get navigation object
 
   return (
     <View style={styles.container}>
-      {/* Logo */}
-      <Image 
-        source={require('../assets/images/Kahani_Express_tran.png')} 
-        style={styles.logo}
-      />
+      <ImageBackground
+        source={require('../assets/images/Kahani_Express_tran.png')} // Replace with your image path
+        style={styles.background}
+        resizeMode="contain"
+      >
+        <View style={styles.content}>
+          <Text style={styles.logo}>Kahani Express</Text>
 
-      {/* Email Input */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="E-mail address"
-          placeholderTextColor="#ccc"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </View>
-      {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+          <Text style={styles.title}>Hello!</Text>
+          <Text style={styles.description}>
+            Tap continue to access Kahani Express illustrated and read aloud library for kids
+          </Text>
 
-      {/* Password Input with Visibility Toggle */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#ccc"
-          secureTextEntry={!isPasswordVisible}
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-        >
-          <Icon 
-            name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
-            size={24} 
-            color="#999" 
-          />
-        </TouchableOpacity>
-      </View>
-      {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={() => navigation.navigate('RegisterScreen')} // Navigate to RegisterScreen
+          >
+            <Text style={styles.continueButtonText}>Continue</Text>
+          </TouchableOpacity>
 
-      {/* Login Button */}
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Log in</Text>
-      </TouchableOpacity>
+          <Text style={styles.or}>—————— OR ——————</Text>
 
-      {/* Forgot Password Link */}
-      {/* <TouchableOpacity onPress={() => navigation.navigate('ForgotPasswordScreen')}>
-        <Text style={styles.linkText}>I forgot my password</Text>
-      </TouchableOpacity> */}
+          <Text style={styles.loginPrompt}>Already have an account?</Text>
+
+          <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}> {/* Navigate to LoginScreen */}
+            <Text style={styles.loginText}>Log in</Text>
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
     </View>
   );
 };
@@ -125,67 +43,70 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4A2E83', // Purple background
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#4A2E83',
+  },
+  background: {
+    width: '90%',
+    height: '70%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   logo: {
-    width: 1200,
-    height: 300,
-    resizeMode: 'contain',
-    marginBottom: 60,
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 40,
   },
-  inputContainer: {
-    width: '100%',
-    position: 'relative',
-    marginBottom: 15,
+  title: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 20,
   },
-  input: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingLeft: 20,
+  description: {
     fontSize: 16,
-    color: '#000',
+    color: '#ffffff',
+    textAlign: 'center',
+    marginHorizontal: 20,
+    marginBottom: 40,
   },
-  iconContainer: {
-    position: 'absolute',
-    right: 15,
-    top: 13,
+  continueButton: {
+    backgroundColor: '#00aaff',
+    paddingVertical: 12,
+    paddingHorizontal: 50,
+    borderRadius: 25,
+    marginBottom: 20,
   },
-  errorText: {
-    width: '100%',
-    color: 'red',
-    fontSize: 14,
-    marginBottom: 5,
-    paddingLeft: 5,
-  },
-  button: {
-    width: '100%',
-    backgroundColor: '#00AEEF', // Blue button color
-    borderRadius: 8,
-    padding: 15,
-    alignItems: 'center',
-    marginTop: 15,
-    // Optional shadow
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  buttonText: {
-    color: '#FFF',
+  continueButtonText: {
+    color: '#ffffff',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
-  linkText: {
-    color: '#FFF',
-    marginTop: 20,
-    fontSize: 14,
-    textDecorationLine: 'underline',
+  or: {
+    fontSize: 16,
+    color: '#ffffff',
+    marginBottom: 20,
+  },
+  loginPrompt: {
+    fontSize: 16,
+    color: '#ffffff',
+    marginBottom: 10,
+  },
+  loginText: {
+    fontSize: 16,
+    color: '#00aaff',
+    fontWeight: 'bold',
   },
 });
 
-export default LoginScreen;
+export default WelcomePage;
