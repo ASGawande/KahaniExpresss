@@ -119,8 +119,8 @@ const styles = StyleSheet.create({
   },
   bubble: {
     position: 'absolute',
-    bottom: 60,
-    left: '50%',
+    bottom: 220,
+    left: '60%',
     transform: [{ translateX: -50 }],
     backgroundColor: '#fff',
     padding: 10,
